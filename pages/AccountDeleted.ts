@@ -7,11 +7,6 @@ export class AccountDeleted extends BasePage {
     return this.page.getByRole("heading", { name: "Account Deleted!" });
   }
 
-  async getAccountDeletedHeadingText() {
-    const heading = this.getAccountDeletedHeading();
-    return (await heading).textContent();
-  }
-
   async clickContinueButton() {
     const continueLink = this.page.getByRole("link", { name: "Continue" });
     await continueLink.click();

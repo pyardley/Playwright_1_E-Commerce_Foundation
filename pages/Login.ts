@@ -7,12 +7,10 @@ export class Login extends BasePage {
     return this.page.locator(".signup-form");
   }
 
-  async getNewUserSignUpHeader() {
-    return (await this.getNewUserSignup()).locator("h2");
-  }
-
-  async getNewUserSignUpHeaderText() {
-    return (await this.getNewUserSignUpHeader()).textContent();
+  async getNewUserSignUpHeading() {
+    return (await this.getNewUserSignup()).getByRole("heading", {
+      name: "New User Signup!",
+    });
   }
 
   async getNewUserNameInput() {

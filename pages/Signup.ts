@@ -9,10 +9,6 @@ export class Signup extends BasePage {
     });
   }
 
-  async getEnterAccountInformationHeadingText() {
-    const heading = this.getEnterAccountInformationHeading();
-    return (await heading).textContent();
-  }
 
   async setTitleToMr() {
     const titleMrRadio = this.page.getByRole("radio", { name: "Mr." });

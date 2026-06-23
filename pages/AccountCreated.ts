@@ -7,11 +7,6 @@ export class AccountCreated extends BasePage {
     return this.page.getByRole("heading", { name: "Account Created!" });
   }
 
-  async getAccountCreatedHeadingText() {
-    const heading = this.getAccountCreatedHeading();
-    return (await heading).textContent();
-  }
-
   async clickContinueButton() {
     const continueLink = this.page.getByRole("link", { name: "Continue" });
     await continueLink.click();
