@@ -20,24 +20,6 @@ export class Signup extends BasePage {
     await titleMrsRadio.check();
   }
 
-  async getNameInput() {
-    return this.page.getByRole("textbox", { name: "Name" });
-  }
-
-  async setNameInput(name: string) {
-    const nameInput = await this.getNameInput();
-    await nameInput.fill(name);
-  }
-
-  async getEmailInput() {
-    return this.page.getByRole("textbox", { name: "Email Address" });
-  }
-
-  async setEmailInput(email: string) {
-    const emailInput = await this.getEmailInput();
-    await emailInput.fill(email);
-  }
-
   async getPasswordInput() {
     return this.page.getByRole("textbox", { name: "Password" });
   }

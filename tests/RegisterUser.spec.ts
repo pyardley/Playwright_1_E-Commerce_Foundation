@@ -1,9 +1,9 @@
 import { test, expect } from "@fixtures/fixtures";
 
 // Test Case 1: Register User
-test("Register User", async ({
+test("Register User", { tag: ['@smoke', '@e2e'] }, async ({
   page,
-  header,
+  homePage,
   login,
   signup,
   accountCreated,
@@ -14,18 +14,18 @@ test("Register User", async ({
 
   await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
     // Step 2: Navigate to url 'http://automationexercise.com'
-    await page.goto("/");
+    await homePage.goto();
 
     // Step 3: Verify that home page is visible successfully
     await expect(page).toHaveURL("/");
-    const homeLink = await header.getHomeLink();
+    const homeLink = await homePage.header.getHomeLink();
     await expect(homeLink).toBeVisible();
     await expect(homeLink).toHaveCSS("color", "rgb(255, 165, 0)");
   });
 
   await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'New User Signup!' is visible", async () => {
     // Step 4: Click on 'Signup / Login' button
-    await header.clickLoginLink();
+    await homePage.header.clickLoginLink();
     await expect(page).toHaveURL("/login");
 
     // Step 5: Verify 'New User Signup!' is visible
@@ -85,12 +85,12 @@ test("Register User", async ({
     await expect(page).toHaveURL("/"); // back to home page
 
     // Step 16: Verify that 'Logged in as username' is visible
-    expect(await header.getLoggedInName()).toBe("John Doe");
+    expect(await homePage.header.getLoggedInName()).toBe("John Doe");
   });
 
   await test.step("Steps 17-18: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
     // Step 17: Click 'Delete Account' button
-    await header.clickDeleteAccountLink();
+    await homePage.header.clickDeleteAccountLink();
     await expect(page).toHaveURL("/delete_account");
 
     // Step 18 (verification): Verify that 'ACCOUNT DELETED!' is visible

@@ -1,17 +1,26 @@
 {
-  "name": "playwright_1_e-commerce_foundation",
+  "name": "playwright-e-commerce-foundation",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "End-to-end Playwright test suite for an e-commerce site, built with TypeScript, the Page Object Model, and accessibility-first locators.",
   "scripts": {
     "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
-    "lint": "eslint ."
+    "report": "playwright show-report",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "playwright",
+    "typescript",
+    "e2e-testing",
+    "page-object-model",
+    "test-automation"
+  ],
+  "author": "Paul Yardley",
+  "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.61.0",

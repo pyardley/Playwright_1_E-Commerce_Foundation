@@ -1,7 +1,7 @@
-import { BasePage } from "./BasePage";
+import { Page } from "@playwright/test";
 
-export class Header extends BasePage {
-  readonly path = "/";
+export class Header {
+  constructor(private readonly page: Page) {}
 
   async getHomeLink() {
     return this.page.getByRole("link", { name: "Home" });
@@ -46,8 +46,8 @@ export class Header extends BasePage {
   }
 
   async getLoggedInName() {
-    const getloggedinas = await this.getLoggedInAs();
-    const fullText = await getloggedinas.textContent();
+    const loggedInAs = await this.getLoggedInAs();
+    const fullText = await loggedInAs.textContent();
 
     const match = fullText?.match(/Logged in as\s+(.*)/);
 

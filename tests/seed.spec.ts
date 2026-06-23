@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('seed', async ({ page }) => {
+test('seed', { tag: '@smoke' }, async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveURL('/');
 });

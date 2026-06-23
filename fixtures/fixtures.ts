@@ -1,12 +1,12 @@
 import { test as base, expect } from '@playwright/test';
-import { Header } from '@pages/Header';
+import { HomePage } from '@pages/Home';
 import { Login } from '@pages/Login';
 import { Signup } from '@pages/Signup';
 import { AccountCreated } from '@pages/AccountCreated';
 import { AccountDeleted } from '@pages/AccountDeleted';
 
 type Fixtures = {
-  header: Header;
+  homePage: HomePage;
   login: Login;
   signup: Signup;
   accountCreated: AccountCreated;
@@ -14,7 +14,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  header: async ({ page }, use) => use(new Header(page)),
+  homePage: async ({ page }, use) => use(new HomePage(page)),
   login: async ({ page }, use) => use(new Login(page)),
   signup: async ({ page }, use) => use(new Signup(page)),
   accountCreated: async ({ page }, use) => use(new AccountCreated(page)),
