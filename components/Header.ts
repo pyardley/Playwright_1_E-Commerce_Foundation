@@ -25,10 +25,26 @@ export class Header {
     await loginLink.click();
   }
 
+  async getLogoutLink() {
+    return this.page.getByRole("link", { name: "Logout" });
+  }
+
+  async clickLogoutLink() {
+    const logoutlink = await this.getLogoutLink();
+    await logoutlink.click();
+  }
+
   private async dismissCookieConsent() {
     const consentButton = this.page.getByRole("button", { name: "Consent" });
-    if (await consentButton.isVisible()) {
-      await consentButton.click();
+
+    try {
+      // Wait up to 3000ms for the button to appear and click it
+      await consentButton.click({ timeout: 3000 });
+      console.log("Cookie consent dismissed.");
+    } catch (e) {
+      // If it times out, the pop-up didn't appear (like in Firefox).
+      // We safely log it and let the test continue.
+      console.log("Cookie consent banner did not appear, skipping.");
     }
   }
 
@@ -52,5 +68,15 @@ export class Header {
     const match = fullText?.match(/Logged in as\s+(.*)/);
 
     return match ? match[1].trim() : "";
+  }
+
+  async getContactUsLink() {
+    return this.page.getByRole("link", { name: "Contact us" });
+  }
+
+  async clickContactUsLink() {
+    await this.dismissCookieConsent();
+    const contactUsLink = await this.getContactUsLink();
+    await contactUsLink.click();
   }
 }

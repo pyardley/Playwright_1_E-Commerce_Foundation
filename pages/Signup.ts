@@ -9,7 +9,6 @@ export class Signup extends BasePage {
     });
   }
 
-
   async setTitleToMr() {
     const titleMrRadio = this.page.getByRole("radio", { name: "Mr." });
     await titleMrRadio.check();
@@ -208,5 +207,9 @@ export class Signup extends BasePage {
       name: "Create Account",
     });
     await createAccountButton.click();
+  }
+
+  async getEmailAddressAlreadyExistError() {
+    return this.page.getByText("Email Address already exist!", { exact: true });
   }
 }
