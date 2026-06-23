@@ -1,11 +1,24 @@
 import { test as base, expect } from '@playwright/test';
+import { Header } from '@pages/Header';
+import { Login } from '@pages/Login';
+import { Signup } from '@pages/Signup';
+import { AccountCreated } from '@pages/AccountCreated';
+import { AccountDeleted } from '@pages/AccountDeleted';
 
-// Add page objects to the Fixtures type and the extend() block below as they're created, e.g.:
-// import { HomePage } from '@pages/HomePage';
-// type Fixtures = { homePage: HomePage };
-// export const test = base.extend<Fixtures>({
-//   homePage: async ({ page }, use) => use(new HomePage(page)),
-// });
+type Fixtures = {
+  header: Header;
+  login: Login;
+  signup: Signup;
+  accountCreated: AccountCreated;
+  accountDeleted: AccountDeleted;
+};
 
-export const test = base;
+export const test = base.extend<Fixtures>({
+  header: async ({ page }, use) => use(new Header(page)),
+  login: async ({ page }, use) => use(new Login(page)),
+  signup: async ({ page }, use) => use(new Signup(page)),
+  accountCreated: async ({ page }, use) => use(new AccountCreated(page)),
+  accountDeleted: async ({ page }, use) => use(new AccountDeleted(page)),
+});
+
 export { expect };
