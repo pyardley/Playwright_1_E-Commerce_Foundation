@@ -7,6 +7,7 @@ import { AccountDeleted } from "@pages/AccountDeleted";
 import { ContactUs } from "@pages/ContactUs";
 import { TestCases } from "@pages/TestCases";
 import { Products } from "@pages/Products";
+import { ProductDetails } from "@pages/ProductDetails";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 
 export type TestUser = RegistrationData;
@@ -76,6 +77,7 @@ type Fixtures = {
   contactUs: ContactUs;
   testCases: TestCases;
   products: Products;
+  productDetails: ProductDetails;
   testUser: TestUser;
   registrationData: RegistrationData;
 };
@@ -89,6 +91,7 @@ export const test = base.extend<Fixtures>({
   contactUs: async ({ page }, use) => use(new ContactUs(page)),
   testCases: async ({ page }, use) => use(new TestCases(page)),
   products: async ({ page }, use) => use(new Products(page)),
+  productDetails: async ({ page }, use) => use(new ProductDetails(page)),
   testUser: async ({ request }, use) => {
     const user: TestUser = buildRegistrationData();
 

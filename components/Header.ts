@@ -11,6 +11,12 @@ export class Header {
     return this.page.getByRole("link", { name: "Products" });
   }
 
+  async clickProductsLink() {
+    await this.dismissCookieConsent();
+    const productsLink = await this.getProductsLink();
+    await productsLink.click();
+  }
+
   async getCartLink() {
     return this.page.getByRole("link", { name: "Cart" });
   }
