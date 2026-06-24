@@ -1,37 +1,24 @@
 import { test, expect } from "@fixtures/fixtures";
+import {
+  navigateToHomeAndVerify,
+  clickSignupLoginLink,
+  deleteAccountAndVerifyDeleted,
+} from "@support/steps";
 
 // Test Case 1: Register User
 test(
   "Register User",
   { tag: ["@smoke", "@e2e"] },
-  async ({
-    page,
-    homePage,
-    login,
-    signup,
-    accountCreated,
-    accountDeleted,
-  }) => {
+  async ({ page, homePage, login, signup, accountCreated, accountDeleted }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
     await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
-      // Step 2: Navigate to url 'http://automationexercise.com'
-      await homePage.goto();
-
-      // Step 3: Verify that home page is visible successfully
-      await expect(page).toHaveURL("/");
-      const homeLink = await homePage.header.getHomeLink();
-      await expect(homeLink).toBeVisible();
-      await expect(homeLink).toHaveCSS("color", "rgb(255, 165, 0)");
+      await navigateToHomeAndVerify(page, homePage);
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'New User Signup!' is visible", async () => {
-      // Step 4: Click on 'Signup / Login' button
-      await homePage.header.clickLoginLink();
-      await expect(page).toHaveURL("/login");
-
-      // Step 5: Verify 'New User Signup!' is visible
+      await clickSignupLoginLink(page, homePage);
       await expect(await login.getNewUserSignUpHeading()).toBeVisible();
     });
 
@@ -42,7 +29,7 @@ test(
 
       // Step 7: Click 'Signup' button
       await login.clickSignupButton();
-      await expect(page).toHaveURL("/signup");
+      await expect(page).toHaveURL(signup.path);
 
       // Step 8: Verify that 'ENTER ACCOUNT INFORMATION' is visible
       await expect(
@@ -78,7 +65,7 @@ test(
 
       // Step 13: Click 'Create Account' button
       await signup.clickCreateAccountButton();
-      await expect(page).toHaveURL("/account_created");
+      await expect(page).toHaveURL(accountCreated.path);
 
       // Step 14: Verify that 'ACCOUNT CREATED!' is visible
       await expect(
@@ -89,27 +76,20 @@ test(
     await test.step("Steps 15-16: Click 'Continue' button and verify 'Logged in as username' is visible", async () => {
       // Step 15: Click 'Continue' button
       await accountCreated.clickContinueButton();
-      await expect(page).toHaveURL("/"); // back to home page
+      await expect(page).toHaveURL(homePage.path); // back to home page
 
       // Step 16: Verify that 'Logged in as username' is visible
       expect(await homePage.header.getLoggedInName()).toBe("John Doe");
     });
 
     await test.step("Steps 17-18: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
-      // Step 17: Click 'Delete Account' button
-      await homePage.header.clickDeleteAccountLink();
-      await expect(page).toHaveURL("/delete_account");
-
-      // Step 18 (verification): Verify that 'ACCOUNT DELETED!' is visible
-      await expect(
-        await accountDeleted.getAccountDeletedHeading(),
-      ).toBeVisible();
+      await deleteAccountAndVerifyDeleted(page, homePage, accountDeleted);
     });
 
     await test.step("Steps 18 (continued): Click 'Continue' button on the Account Deleted page", async () => {
       // Step 18 (action): Click 'Continue' button
       await accountDeleted.clickContinueButton();
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL(homePage.path);
     });
   },
 );
@@ -123,22 +103,11 @@ test(
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
     await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
-      // Step 2: Navigate to url 'http://automationexercise.com'
-      await homePage.goto();
-
-      // Step 3: Verify that home page is visible successfully
-      await expect(page).toHaveURL("/");
-      const homeLink = await homePage.header.getHomeLink();
-      await expect(homeLink).toBeVisible();
-      await expect(homeLink).toHaveCSS("color", "rgb(255, 165, 0)");
+      await navigateToHomeAndVerify(page, homePage);
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'New User Signup!' is visible", async () => {
-      // Step 4: Click on 'Signup / Login' button
-      await homePage.header.clickLoginLink();
-      await expect(page).toHaveURL("/login");
-
-      // Step 5: Verify 'New User Signup!' is visible
+      await clickSignupLoginLink(page, homePage);
       await expect(await login.getNewUserSignUpHeading()).toBeVisible();
     });
 
@@ -149,7 +118,7 @@ test(
 
       // Step 7: Click 'Signup' button
       await login.clickSignupButton();
-      await expect(page).toHaveURL("/signup");
+      await expect(page).toHaveURL(signup.path);
 
       // Step 8: Verify error 'Email Address already exist!' is visible
       await expect(

@@ -1,10 +1,12 @@
-import { test as base, expect, APIRequestContext } from '@playwright/test';
-import { HomePage } from '@pages/Home';
-import { Login } from '@pages/Login';
-import { Signup } from '@pages/Signup';
-import { AccountCreated } from '@pages/AccountCreated';
-import { AccountDeleted } from '@pages/AccountDeleted';
-import { ContactUs } from '@pages/ContactUs';
+import { test as base, expect, APIRequestContext } from "@playwright/test";
+import { HomePage } from "@pages/Home";
+import { Login } from "@pages/Login";
+import { Signup } from "@pages/Signup";
+import { AccountCreated } from "@pages/AccountCreated";
+import { AccountDeleted } from "@pages/AccountDeleted";
+import { ContactUs } from "@pages/ContactUs";
+import { TestCases } from "@pages/TestCases";
+import { Products } from "@pages/Products";
 
 export type TestUser = {
   name: string;
@@ -17,25 +19,25 @@ export type TestUser = {
 // even though the field is present. It also always replies with HTTP 200;
 // the real outcome is the `responseCode` field in the JSON body.
 async function createUserViaApi(request: APIRequestContext, user: TestUser) {
-  const response = await request.post('/api/createAccount', {
+  const response = await request.post("/api/createAccount", {
     form: {
       name: user.name,
       email: user.email,
       password: user.password,
-      title: 'Mr',
-      birth_date: '1',
-      birth_month: '1',
-      birth_year: '1990',
-      firstname: 'John',
-      lastname: 'Doe',
-      company: 'Example Inc.',
-      address1: '123 Main St',
-      address2: 'Apt 4B',
-      country: 'United States',
-      zipcode: '90001',
-      state: 'California',
-      city: 'Los Angeles',
-      mobile_number: '+1-555-123-4567',
+      title: "Mr",
+      birth_date: "1",
+      birth_month: "1",
+      birth_year: "1990",
+      firstname: "John",
+      lastname: "Doe",
+      company: "Example Inc.",
+      address1: "123 Main St",
+      address2: "Apt 4B",
+      country: "United States",
+      zipcode: "90001",
+      state: "California",
+      city: "Los Angeles",
+      mobile_number: "+1-555-123-4567",
     },
   });
 
@@ -52,7 +54,7 @@ async function createUserViaApi(request: APIRequestContext, user: TestUser) {
 // be logged, not fail an otherwise-passing test.
 async function deleteUserViaApi(request: APIRequestContext, user: TestUser) {
   try {
-    const response = await request.delete('/api/deleteAccount', {
+    const response = await request.delete("/api/deleteAccount", {
       form: {
         email: user.email,
         password: user.password,
@@ -75,6 +77,8 @@ type Fixtures = {
   accountCreated: AccountCreated;
   accountDeleted: AccountDeleted;
   contactUs: ContactUs;
+  testCases: TestCases;
+  products: Products;
   testUser: TestUser;
 };
 
@@ -85,11 +89,13 @@ export const test = base.extend<Fixtures>({
   accountCreated: async ({ page }, use) => use(new AccountCreated(page)),
   accountDeleted: async ({ page }, use) => use(new AccountDeleted(page)),
   contactUs: async ({ page }, use) => use(new ContactUs(page)),
+  testCases: async ({ page }, use) => use(new TestCases(page)),
+  products: async ({ page }, use) => use(new Products(page)),
   testUser: async ({ request }, use) => {
     const user: TestUser = {
-      name: 'John Doe',
+      name: "John Doe",
       email: `john.doe.${Date.now()}@example.com`,
-      password: 'password123',
+      password: "password123",
     };
 
     await createUserViaApi(request, user);

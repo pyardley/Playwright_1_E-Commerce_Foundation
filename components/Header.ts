@@ -79,4 +79,14 @@ export class Header {
     const contactUsLink = await this.getContactUsLink();
     await contactUsLink.click();
   }
+
+  async getTestCasesLink() {
+    return this.page.getByRole("link", { name: " Test Cases", exact: true });
+  }
+
+  async clickTestCasesLink() {
+    await this.dismissCookieConsent();
+    const testCasesLink = await this.getTestCasesLink();
+    await testCasesLink.click();
+  }
 }

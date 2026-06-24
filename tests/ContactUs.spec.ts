@@ -1,4 +1,5 @@
 import { test, expect } from "@fixtures/fixtures";
+import { navigateToHomeAndVerify } from "@support/steps";
 
 // Test Case 6: Contact Us Form
 test(
@@ -9,20 +10,13 @@ test(
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
     await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
-      // Step 2: Navigate to url 'http://automationexercise.com'
-      await homePage.goto();
-
-      // Step 3: Verify that home page is visible successfully
-      await expect(page).toHaveURL("/");
-      const homeLink = await homePage.header.getHomeLink();
-      await expect(homeLink).toBeVisible();
-      await expect(homeLink).toHaveCSS("color", "rgb(255, 165, 0)");
+      await navigateToHomeAndVerify(page, homePage);
     });
 
     await test.step("Steps 4-5: Click 'Contact Us' button and verify 'GET IN TOUCH' is visible", async () => {
       // Step 4: Click on 'Contact Us' button
       await homePage.header.clickContactUsLink();
-      await expect(page).toHaveURL("/contact_us");
+      await expect(page).toHaveURL(contactUs.path);
 
       // Step 5: Verify 'GET IN TOUCH' is visible
       await expect(await contactUs.getGetInTouchHeading()).toBeVisible();
@@ -57,7 +51,7 @@ test(
     await test.step("Steps 11: Click 'Home' button and verify that landed to home page successfully", async () => {
       // Step 11: Click 'Home' button and verify that landed to home page successfully
       await contactUs.clickHomeButton();
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL(homePage.path);
     });
   },
 );
