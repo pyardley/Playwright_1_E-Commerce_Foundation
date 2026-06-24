@@ -32,13 +32,28 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
-        run: npm test
+      - name: Run smoke tests (fixed test data)
+        run: npm run test:smoke
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-smoke
 
-      - name: Upload HTML report
+      - name: Run e2e tests (Faker-generated test data)
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-e2e
+
+      - name: Upload smoke HTML report
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-report-smoke
+          path: playwright-report-smoke/
+          retention-days: 14
+
+      - name: Upload e2e HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-e2e
+          path: playwright-report-e2e/
           retention-days: 14

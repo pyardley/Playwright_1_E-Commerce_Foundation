@@ -69,6 +69,7 @@ export class Header {
 
   async getLoggedInName() {
     const loggedInAs = await this.getLoggedInAs();
+    await loggedInAs.waitFor({ state: "visible" });
     const fullText = await loggedInAs.textContent();
 
     const match = fullText?.match(/Logged in as\s+(.*)/);

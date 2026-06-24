@@ -1,9 +1,10 @@
 import { test, expect } from "@fixtures/fixtures";
 import { navigateToHomeAndVerify } from "@support/steps";
+import { navigateToProductsAndVerify } from "@support/steps";
 
 // Test Case 8: Verify All Products and product detail page
 test(
-  "Verify Test Cases Page",
+  "Verify All Products and product detail page",
   { tag: ["@smoke", "@e2e"] },
   async ({ page, homePage, products, productDetails }) => {
     // Step 1: Launch browser
@@ -15,21 +16,17 @@ test(
 
     await test.step("Steps 4-6: Click on 'Products' button and Verify user is navigated to ALL PRODUCTS page successfully and The products list is visible", async () => {
       // Step 4: Click on 'Products' button
-      await homePage.header.clickProductsLink();
-
       // Step 5: Verify user is navigated to ALL PRODUCTS page successfully
-      await expect(page).toHaveURL(products.path);
-      await expect(await products.getAllProductsHeading()).toBeVisible();
+      await navigateToProductsAndVerify(page, homePage, products);
 
       // Step 6: The products list is visible
       await expect(await products.getProductListContainer()).toBeVisible();
       expect(await products.getProductCount()).toBeGreaterThan(0);
     });
 
-    const expectedSummary = await test.step(
-      "Capture the first product's listed name/price to verify against on the detail page",
-      async () => products.getNthProductSummary(0),
-    );
+    const expectedSummary =
+      await test.step("Capture the first product's listed name/price to verify against on the detail page", async () =>
+        products.getNthProductSummary(0));
 
     await test.step("Steps 7-8: Click on 'View Product' of first product and Verify User is landed to product detail page", async () => {
       // Step 7: Click on 'View Product' of first product
@@ -53,6 +50,41 @@ test(
       expect(details.availability).toMatch(/^Availability:\s*.+/);
       expect(details.condition).toMatch(/^Condition:\s*.+/);
       expect(details.brand).toMatch(/^Brand:\s*.+/);
+    });
+  },
+);
+
+// Test Case 9: VSearch Product
+test(
+  "Search Product",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage, products }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Steps 4-5: Click on 'Products' button and Verify user is navigated to ALL PRODUCTS page successfully", async () => {
+      // Step 4: Click on 'Products' button
+      // Step 5: Verify user is navigated to ALL PRODUCTS page successfully
+      await navigateToProductsAndVerify(page, homePage, products);
+    });
+
+    await test.step("Steps 6-7: Enter product name in search input and click search button. Verify 'SEARCHED PRODUCTS' is visible. Verify all the products related to search are visible.", async () => {
+      // Step 6: Enter product name in search input and click search button
+      await products.searchForProduct("sleeves");
+
+      // Step 7: Verify 'SEARCHED PRODUCTS' is visible
+      await expect(page).toHaveURL("/products?search=sleeves");
+      await expect(await products.getSearchedProductsHeader()).toBeVisible();
+
+      // Step 8:Verify all the products related to search are visible
+      const allProducts = await products.getAllDisplayedProductNames();
+      for (const productName of allProducts) {
+        expect(productName.toLowerCase()).toContain("sleeves");
+      }
     });
   },
 );

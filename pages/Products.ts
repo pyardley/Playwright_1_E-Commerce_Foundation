@@ -58,4 +58,45 @@ export class Products extends BasePage {
       price: price.trim(),
     };
   }
+
+  async getSearchInput() {
+    return this.page.getByPlaceholder("Search Product");
+  }
+
+  async setSearchInput(search: string) {
+    const searchInput = await this.getSearchInput();
+    await searchInput.fill(search);
+  }
+
+  async getSearchButton() {
+    return this.page
+      .getByRole("button")
+      .and(this.page.locator("#submit_search"));
+  }
+
+  async clickSearchButton() {
+    await (await this.getSearchButton()).click();
+  }
+
+  async searchForProduct(search: string) {
+    await this.setSearchInput(search);
+    await this.clickSearchButton();
+  }
+
+  async getSearchedProductsHeader() {
+    return this.page.getByRole("heading", {
+      name: "Searched Products",
+    });
+  }
+
+  async getAllDisplayedProductNames(): Promise<string[]> {
+    // Isolate the paragraph tags directly inside the static info elements
+    const nameLocators = this.page.locator(".features_items .productinfo p");
+
+    // Directly extract all text strings into an array
+    const rawNames = await nameLocators.allInnerTexts();
+
+    // Map through the array to clean up whitespace
+    return rawNames.map((name) => name.trim());
+  }
 }

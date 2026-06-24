@@ -17,7 +17,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **Web-first assertions** — `expect(locator).toBeVisible()` auto-retries instead of single-snapshot `textContent()` + `toBe()` checks.
 - **Traceability** — every spec file is commented step-by-step against a documented manual test case, using `test.step()` for structured, readable reporting (see [Test coverage](#test-coverage) below).
 - **Cross-browser coverage** — the suite runs against Chromium, Firefox, and WebKit.
-- **CI** — every push and pull request runs lint, type-check, and the full suite via GitHub Actions (see badge above).
+- **CI** — every push and pull request runs lint, type-check, then both the smoke suite (fixed data) and the e2e suite (Faker-generated data) as separate staged steps, each uploading its own HTML report artifact, via GitHub Actions (see badge above).
 
 ## Test coverage
 
@@ -114,6 +114,11 @@ npm test
 | `npm run report`     | Open the last HTML report                     |
 | `npm run lint`       | Run ESLint                                    |
 | `npm run typecheck`  | Run the TypeScript compiler in check-only mode |
+
+## Known gaps
+
+- **No flake budget.** There's no documented retry-rate threshold or quarantine policy for chronically flaky tests (this suite hits a live third-party site, so some flakiness is expected — see the parallel-load notes in commit history). If a test starts failing intermittently, decide explicitly whether to fix it, quarantine it with a linked issue, or accept the flake rate, rather than letting it linger unaddressed.
+- **No cross-run trend visibility.** The HTML reporter (`npm run report`) only shows the most recent run; there's no dashboard tracking pass-rate or flake-rate across runs over time. Worth revisiting if flakiness becomes a recurring problem rather than an occasional one.
 
 ## License
 
