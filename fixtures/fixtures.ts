@@ -7,12 +7,9 @@ import { AccountDeleted } from "@pages/AccountDeleted";
 import { ContactUs } from "@pages/ContactUs";
 import { TestCases } from "@pages/TestCases";
 import { Products } from "@pages/Products";
+import { buildRegistrationData, RegistrationData } from "@support/testData";
 
-export type TestUser = {
-  name: string;
-  email: string;
-  password: string;
-};
+export type TestUser = RegistrationData;
 
 // The createAccount API only reads classic form fields (request.POST in
 // Django), not a JSON body - a JSON request gets "name parameter is missing"
@@ -24,20 +21,20 @@ async function createUserViaApi(request: APIRequestContext, user: TestUser) {
       name: user.name,
       email: user.email,
       password: user.password,
-      title: "Mr",
-      birth_date: "1",
-      birth_month: "1",
-      birth_year: "1990",
-      firstname: "John",
-      lastname: "Doe",
-      company: "Example Inc.",
-      address1: "123 Main St",
-      address2: "Apt 4B",
-      country: "United States",
-      zipcode: "90001",
-      state: "California",
-      city: "Los Angeles",
-      mobile_number: "+1-555-123-4567",
+      title: user.title,
+      birth_date: user.birthDate,
+      birth_month: user.birthMonth,
+      birth_year: user.birthYear,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      company: user.company,
+      address1: user.address1,
+      address2: user.address2,
+      country: user.country,
+      zipcode: user.zipcode,
+      state: user.state,
+      city: user.city,
+      mobile_number: user.mobileNumber,
     },
   });
 
@@ -80,6 +77,7 @@ type Fixtures = {
   testCases: TestCases;
   products: Products;
   testUser: TestUser;
+  registrationData: RegistrationData;
 };
 
 export const test = base.extend<Fixtures>({
@@ -92,11 +90,7 @@ export const test = base.extend<Fixtures>({
   testCases: async ({ page }, use) => use(new TestCases(page)),
   products: async ({ page }, use) => use(new Products(page)),
   testUser: async ({ request }, use) => {
-    const user: TestUser = {
-      name: "John Doe",
-      email: `john.doe.${Date.now()}@example.com`,
-      password: "password123",
-    };
+    const user: TestUser = buildRegistrationData();
 
     await createUserViaApi(request, user);
 
@@ -104,6 +98,10 @@ export const test = base.extend<Fixtures>({
 
     await deleteUserViaApi(request, user);
   },
+  // API-free - unlike testUser, this doesn't create an account, since the
+  // "Register User" test creates its own account through the UI and would
+  // otherwise end up with a redundant duplicate account.
+  registrationData: async ({}, use) => use(buildRegistrationData()),
 });
 
 export { expect };

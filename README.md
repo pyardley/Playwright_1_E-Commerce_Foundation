@@ -12,6 +12,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **Composed components** — the site-wide navigation bar (`components/Header.ts`) is a plain class composed into `HomePage` via its constructor, rather than being misrepresented as its own page.
 - **Typed fixtures** — page objects are wired into tests through `fixtures/fixtures.ts` (`base.extend<Fixtures>`) instead of being constructed ad hoc inside test bodies.
 - **API-driven test data setup and teardown** — the `testUser` fixture (`fixtures/fixtures.ts`) provisions a real account via `POST /api/createAccount` before any test that needs one, and tears it down via `DELETE /api/deleteAccount` afterwards, tolerating an already-deleted account (e.g. when the test itself deletes it through the UI) rather than failing teardown. This keeps UI tests focused on the behaviour actually under test instead of re-running a full signup flow just to get a logged-in user, and stops the site's test database from accumulating orphaned accounts every CI run. Getting there involved a real debugging exercise: the API only reads classic form-encoded fields, not a JSON body — a JSON request fails with "name parameter is missing" even though the field is present — and it always replies with HTTP 200, with the real outcome carried in the response body's `responseCode` field instead.
+- **Switchable test data source** — `support/testData.ts`'s `buildRegistrationData()` returns today's fixed, deterministic literals by default (used by `npm run test:smoke`), or `@faker-js/faker`-generated values when `TEST_DATA_MODE=faker` is set (used by `npm run test:e2e`). The same registration/account fields (name, address, DOB, etc.) flow through either mode without changing which Playwright tags a test carries — see [Test data modes](#test-data-modes) below.
 - **Accessibility-first locators** — `getByRole`/`getByLabel`/`getByText` throughout, with `data-qa` attribute fallbacks (and documented comments) only where the application's own markup has no accessible name to query against — including a couple of real markup bugs discovered and worked around (see comments in `pages/Signup.ts`).
 - **Web-first assertions** — `expect(locator).toBeVisible()` auto-retries instead of single-snapshot `textContent()` + `toBe()` checks.
 - **Traceability** — every spec file is commented step-by-step against a documented manual test case, using `test.step()` for structured, readable reporting (see [Test coverage](#test-coverage) below).
@@ -30,6 +31,17 @@ This project is a foundation/reference implementation for structuring a Playwrig
 | `tests/ContactUs.spec.ts` | Contact Us Form |
 | `tests/seed.spec.ts` | Baseline connectivity smoke check |
 
+## Test data modes
+
+Registration/account data (name, email, password, address, date of birth, etc.) comes from a single factory, `buildRegistrationData()` in `support/testData.ts`, consumed by the `testUser` and `registrationData` fixtures in `fixtures/fixtures.ts`. Which values it returns depends on the `TEST_DATA_MODE` environment variable:
+
+| Mode | How to run | Full underlying command | Data source |
+| --- | --- | --- | --- |
+| Fixed (default) | `npm run test:smoke`, `npm test` | `playwright test --grep @smoke` | Today's exact hardcoded literals — deterministic, easy to read straight out of a failure message |
+| Faker | `npm run test:e2e` | `cross-env TEST_DATA_MODE=faker playwright test --grep @e2e` | `@faker-js/faker`-generated values — broader input coverage, a fresh name/address/etc. every run |
+
+Every test still carries both `@smoke` and `@e2e` tags; the mode is chosen by which npm script runs the suite, not by which tag matched. `country` is restricted to the seven options the site's signup dropdown actually renders (`India`, `United States`, `Canada`, `Australia`, `Israel`, `New Zealand`, `Singapore`), since an unconstrained Faker country would have no matching `<option>`. Email stays uniquified with a timestamp suffix in both modes, since the suite runs `fullyParallel`. The newsletter/special-offers checkboxes are also randomized in Faker mode (both default to checked in fixed mode).
+
 ## How this compares to other automationexercise.com Playwright suites
 
 automationexercise.com is a niche QA-practice target, not a widely-starred open-source project — there's no single dominant framework for it. Searching GitHub for Playwright suites against this site (as of June 2026) turned up mostly 0–1★ student exercises; the four most-starred Playwright-specific ones are reviewed below:
@@ -45,8 +57,8 @@ automationexercise.com is a niche QA-practice target, not a widely-starred open-
 
 | Approach | Seen in | Advantage | Disadvantage |
 | --- | --- | --- | --- |
-| Faker.js-generated test data (name, address, payment, etc.) | mmislej | Tests never collide on shared literals; broader, more realistic input coverage for free | One more dependency; a failure is slightly harder to reproduce exactly without logging the generated values |
-| Hardcoded literal test data, made unique only where needed (e.g. email) | **This project**, telverneck | Simple, deterministic, easy to read straight out of a failure message | Doesn't exercise the same input variety a fuzzed/faker-driven suite would |
+| Faker.js-generated test data (name, address, payment, etc.) | mmislej, **This project** (opt-in via `TEST_DATA_MODE=faker` / `npm run test:e2e`) | Tests never collide on shared literals; broader, more realistic input coverage for free | One more dependency; a failure is slightly harder to reproduce exactly without logging the generated values |
+| Hardcoded literal test data, made unique only where needed (e.g. email) | **This project** (default / `npm run test:smoke`), telverneck | Simple, deterministic, easy to read straight out of a failure message | Doesn't exercise the same input variety a fuzzed/faker-driven suite would |
 | Block ad/consent domains at the network level (`page.route(adDomainRegex, route => route.abort())`) | mmislej | Directly prevents the exact Google Vignette interstitial that intercepted a click in our own `ContactUs.spec.ts`; works identically across all three browsers | Requires maintaining a domain blocklist; could in theory mask a real bug if the app under test legitimately depended on a blocked script |
 | Custom Chrome extension for ad-blocking, loaded via a persistent browser context | AppmetryTech | Blocks at the request level before the page even renders | Chromium-only — extensions don't load the same way in Firefox/WebKit; a persistent context also gives up some of the isolation a fresh context-per-test provides |
 | Dismiss known overlays defensively, accept the rest as flaky and lean on CI `retries` | **This project** | No added dependency or maintenance surface; matches our own `playwright-anti-patterns` skill's guidance not to over-engineer for a single intermittent flake source | Doesn't prevent the interception, just absorbs it after the fact |
@@ -76,7 +88,7 @@ Two of the four repos illustrate risks worth naming explicitly, rather than trea
 pages/        Page objects (extend BasePage; path + behaviour methods, no assertions)
 components/   Shared widgets composed into page objects (e.g. the nav bar)
 fixtures/     Typed Playwright fixtures wiring page objects into tests
-support/      Shared test.step bodies reused across spec files (no fixtures of their own)
+support/      Shared test.step bodies and the test data factory (no fixtures of their own)
 tests/        Spec files
 .claude/      Agent definitions for plan -> generate -> heal workflows (optional tooling)
 ```
@@ -95,7 +107,8 @@ npm test
 | Script               | Description                                  |
 | -------------------- | --------------------------------------------- |
 | `npm test`           | Run the full suite across all browsers        |
-| `npm run test:smoke` | Run only tests tagged `@smoke`                |
+| `npm run test:smoke` | Run only tests tagged `@smoke` (fixed test data)         |
+| `npm run test:e2e`   | Run only tests tagged `@e2e` with Faker-generated test data (`TEST_DATA_MODE=faker`) |
 | `npm run test:ui`    | Run tests in Playwright's UI mode             |
 | `npm run test:headed`| Run tests in headed (visible) browser mode    |
 | `npm run report`     | Open the last HTML report                     |

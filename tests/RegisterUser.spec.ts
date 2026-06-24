@@ -9,7 +9,15 @@ import {
 test(
   "Register User",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, login, signup, accountCreated, accountDeleted }) => {
+  async ({
+    page,
+    homePage,
+    login,
+    signup,
+    accountCreated,
+    accountDeleted,
+    registrationData,
+  }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
@@ -24,8 +32,8 @@ test(
 
     await test.step("Steps 6-8: Enter name and email, click 'Signup', and verify 'ENTER ACCOUNT INFORMATION' is visible", async () => {
       // Step 6: Enter name and email address
-      await login.setNewUserNameInput("John Doe");
-      await login.setNewUserEmailInput(`john.doe.${Date.now()}@example.com`);
+      await login.setNewUserNameInput(registrationData.name);
+      await login.setNewUserEmailInput(registrationData.email);
 
       // Step 7: Click 'Signup' button
       await login.clickSignupButton();
@@ -40,28 +48,36 @@ test(
     await test.step("Steps 9-14: Fill account and address details, click 'Create Account', and verify 'ACCOUNT CREATED!' is visible", async () => {
       // Step 9: Fill details: Title, Name, Email, Password, Date of birth
       // (Name and Email were already entered in step 6)
-      await signup.setTitleToMr();
-      await signup.setPasswordInput("password123");
-      await signup.setDateOfBirth("1", "January", "1990");
+      const setTitle: Record<typeof registrationData.title, () => Promise<void>> = {
+        Mr: () => signup.setTitleToMr(),
+        Mrs: () => signup.setTitleToMrs(),
+      };
+      await setTitle[registrationData.title]();
+      await signup.setPasswordInput(registrationData.password);
+      await signup.setDateOfBirth(
+        registrationData.birthDate,
+        registrationData.birthMonthName,
+        registrationData.birthYear,
+      );
 
       // Step 10: Select checkbox 'Sign up for our newsletter!'
-      await signup.setNewsletterCheckbox(true);
+      await signup.setNewsletterCheckbox(registrationData.newsletter);
 
       // Step 11: Select checkbox 'Receive special offers from our partners!'
-      await signup.setOffersCheckbox(true);
+      await signup.setOffersCheckbox(registrationData.offers);
 
       // Step 12: Fill details: First name, Last name, Company, Address, Address2,
       // Country, State, City, Zipcode, Mobile Number
-      await signup.setFirstNameInput("John");
-      await signup.setLastNameInput("Doe");
-      await signup.setCompanyInput("Example Inc.");
-      await signup.setAddress1Input("123 Main St");
-      await signup.setAddress2Input("Apt 4B");
-      await signup.setCountrySelect("United States");
-      await signup.setStateInput("California");
-      await signup.setCityInput("Los Angeles");
-      await signup.setZipcodeInput("90001");
-      await signup.setMobileNumberInput("+1-555-123-4567");
+      await signup.setFirstNameInput(registrationData.firstname);
+      await signup.setLastNameInput(registrationData.lastname);
+      await signup.setCompanyInput(registrationData.company);
+      await signup.setAddress1Input(registrationData.address1);
+      await signup.setAddress2Input(registrationData.address2);
+      await signup.setCountrySelect(registrationData.country);
+      await signup.setStateInput(registrationData.state);
+      await signup.setCityInput(registrationData.city);
+      await signup.setZipcodeInput(registrationData.zipcode);
+      await signup.setMobileNumberInput(registrationData.mobileNumber);
 
       // Step 13: Click 'Create Account' button
       await signup.clickCreateAccountButton();
@@ -79,7 +95,7 @@ test(
       await expect(page).toHaveURL(homePage.path); // back to home page
 
       // Step 16: Verify that 'Logged in as username' is visible
-      expect(await homePage.header.getLoggedInName()).toBe("John Doe");
+      expect(await homePage.header.getLoggedInName()).toBe(registrationData.name);
     });
 
     await test.step("Steps 17-18: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
@@ -98,7 +114,7 @@ test(
 test(
   "Register User with existing email",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, login, signup, testUser }) => {
+  async ({ page, homePage, login, signup, testUser, registrationData }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
@@ -113,7 +129,7 @@ test(
 
     await test.step("Steps 6-8: Enter name and already registered email, click 'Signup', and Verify error 'Email Address already exist!' is visible", async () => {
       // Step 6: Enter name and already registered email address
-      await login.setNewUserNameInput("John Doe");
+      await login.setNewUserNameInput(registrationData.name);
       await login.setNewUserEmailInput(testUser.email); // Created by fixture
 
       // Step 7: Click 'Signup' button
