@@ -1,9 +1,75 @@
+import { Locator, Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
 export interface ProductSummary {
   name: string;
   price: string;
 }
+
+class ProductCard {
+  constructor(private readonly cardLocator: Locator) {}
+
+  async getName() {
+    return (
+      await this.cardLocator.locator(".productinfo p").innerText()
+    ).trim();
+  }
+
+  async getPrice() {
+    return (
+      await this.cardLocator.locator(".productinfo h2").innerText()
+    ).trim();
+  }
+
+  async getSummary(): Promise<ProductSummary> {
+    await this.cardLocator.waitFor({ state: "visible" });
+    return { name: await this.getName(), price: await this.getPrice() };
+  }
+
+  // The "View Product" link lives in a sibling .choose block, not inside
+  // .single-products - this card's own locator is already scoped to
+  // .product-image-wrapper (see getProductCardLocators below) so this just
+  // queries within it.
+  async clickViewProduct() {
+    await this.cardLocator.getByRole("link", { name: "View Product" }).click();
+  }
+
+  async hoverAndClickAddToCart() {
+    await this.cardLocator.hover();
+    await this.cardLocator.locator(".product-overlay .add-to-cart").click();
+  }
+}
+
+class AddedToCartModal {
+  constructor(private readonly page: Page) {}
+
+  async getModal() {
+    return this.page.locator(".modal-content");
+  }
+
+  async getHeader() {
+    return (await this.getModal()).getByRole("heading", { name: "Added!" });
+  }
+
+  async getContinueShoppingBtn() {
+    return (await this.getModal()).getByRole("button", {
+      name: "Continue Shopping",
+    });
+  }
+
+  async clickContinueShoppingBtn() {
+    await (await this.getContinueShoppingBtn()).click();
+  }
+
+  async getViewCartLink() {
+    return (await this.getModal()).getByRole("link", { name: "View Cart" });
+  }
+
+  async clickViewCartLink() {
+    await (await this.getViewCartLink()).click();
+  }
+}
+
 export class ProductsPage extends BasePage {
   readonly path = "/products";
 
@@ -17,46 +83,22 @@ export class ProductsPage extends BasePage {
     return this.page.locator(".features_items");
   }
 
-  async getProductCount() {
-    return (await this.getProductListContainer())
-      .locator(".product-image-wrapper")
-      .count();
-  }
-
   // Scoped to .product-image-wrapper, not .single-products: the "View
   // Product" link lives in a sibling .choose block, not inside
   // .single-products, so a narrower scope would miss it.
+  private async getProductCardLocators() {
+    return (await this.getProductListContainer()).locator(
+      ".product-image-wrapper",
+    );
+  }
+
+  async getProductCount() {
+    return (await this.getProductCardLocators()).count();
+  }
+
   async getProductCard(index: number) {
-    return (await this.getProductListContainer())
-      .locator(".product-image-wrapper")
-      .nth(index);
-  }
-
-  async clickViewProduct(index: number) {
-    await (await this.getProductCard(index))
-      .getByRole("link", { name: "View Product" })
-      .click();
-  }
-
-  async clickViewFirstProduct() {
-    await this.clickViewProduct(0);
-  }
-
-  async getNthProductSummary(index: number): Promise<ProductSummary> {
-    // Isolate the specific card container
-    const productCard = await this.getProductCard(index);
-
-    // Ensure the card is rendered before scraping
-    await productCard.waitFor({ state: "visible" });
-
-    // Extract text strictly from the static info block (ignoring the hover overlay)
-    const price = await productCard.locator(".productinfo h2").innerText();
-    const name = await productCard.locator(".productinfo p").innerText();
-
-    return {
-      name: name.trim(),
-      price: price.trim(),
-    };
+    const cardLocator = (await this.getProductCardLocators()).nth(index);
+    return new ProductCard(cardLocator);
   }
 
   async getSearchInput() {
@@ -98,5 +140,9 @@ export class ProductsPage extends BasePage {
 
     // Map through the array to clean up whitespace
     return rawNames.map((name) => name.trim());
+  }
+
+  async getAddedToCartModal() {
+    return new AddedToCartModal(this.page);
   }
 }
