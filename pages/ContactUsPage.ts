@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class ContactUs extends BasePage {
+export class ContactUsPage extends BasePage {
   readonly path = "/contact_us";
 
   async getGetInTouchHeading() {

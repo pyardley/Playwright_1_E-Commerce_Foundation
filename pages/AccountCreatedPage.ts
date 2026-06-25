@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class AccountCreated extends BasePage {
+export class AccountCreatedPage extends BasePage {
   readonly path = "/account_created";
 
   async getAccountCreatedHeading() {

@@ -6,7 +6,7 @@ import { navigateToProductsAndVerify } from "@support/steps";
 test(
   "Verify All Products and product detail page",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, products, productDetails }) => {
+  async ({ page, homePage, productsPage, productDetailsPage }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
@@ -17,27 +17,27 @@ test(
     await test.step("Steps 4-6: Click on 'Products' button and Verify user is navigated to ALL PRODUCTS page successfully and The products list is visible", async () => {
       // Step 4: Click on 'Products' button
       // Step 5: Verify user is navigated to ALL PRODUCTS page successfully
-      await navigateToProductsAndVerify(page, homePage, products);
+      await navigateToProductsAndVerify(page, homePage, productsPage);
 
       // Step 6: The products list is visible
-      await expect(await products.getProductListContainer()).toBeVisible();
-      expect(await products.getProductCount()).toBeGreaterThan(0);
+      await expect(await productsPage.getProductListContainer()).toBeVisible();
+      expect(await productsPage.getProductCount()).toBeGreaterThan(0);
     });
 
     const expectedSummary =
       await test.step("Capture the first product's listed name/price to verify against on the detail page", async () =>
-        products.getNthProductSummary(0));
+        productsPage.getNthProductSummary(0));
 
     await test.step("Steps 7-8: Click on 'View Product' of first product and Verify User is landed to product detail page", async () => {
       // Step 7: Click on 'View Product' of first product
-      await products.clickViewFirstProduct();
+      await productsPage.clickViewFirstProduct();
 
       // Step 8: User is landed to product detail page
-      await expect(page).toHaveURL(productDetails.path);
+      await expect(page).toHaveURL(productDetailsPage.path);
     });
 
     await test.step("Steps 9: Verify that product detail is visible: product name, category, price, availability, condition, brand", async () => {
-      const details = await productDetails.getProductDetails();
+      const details = await productDetailsPage.getProductDetails();
 
       // Name/price must match what was listed on the Products page
       expect(details.productName).toBe(expectedSummary.name);
@@ -58,7 +58,7 @@ test(
 test(
   "Search Product",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, products }) => {
+  async ({ page, homePage, productsPage }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
@@ -69,19 +69,19 @@ test(
     await test.step("Steps 4-5: Click on 'Products' button and Verify user is navigated to ALL PRODUCTS page successfully", async () => {
       // Step 4: Click on 'Products' button
       // Step 5: Verify user is navigated to ALL PRODUCTS page successfully
-      await navigateToProductsAndVerify(page, homePage, products);
+      await navigateToProductsAndVerify(page, homePage, productsPage);
     });
 
     await test.step("Steps 6-7: Enter product name in search input and click search button. Verify 'SEARCHED PRODUCTS' is visible. Verify all the products related to search are visible.", async () => {
       // Step 6: Enter product name in search input and click search button
-      await products.searchForProduct("sleeves");
+      await productsPage.searchForProduct("sleeves");
 
       // Step 7: Verify 'SEARCHED PRODUCTS' is visible
       await expect(page).toHaveURL("/products?search=sleeves");
-      await expect(await products.getSearchedProductsHeader()).toBeVisible();
+      await expect(await productsPage.getSearchedProductsHeader()).toBeVisible();
 
       // Step 8:Verify all the products related to search are visible
-      const allProducts = await products.getAllDisplayedProductNames();
+      const allProducts = await productsPage.getAllDisplayedProductNames();
       for (const productName of allProducts) {
         expect(productName.toLowerCase()).toContain("sleeves");
       }

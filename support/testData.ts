@@ -111,7 +111,7 @@ function fakerRegistrationData(): RegistrationData {
 }
 
 export function buildRegistrationData(): RegistrationData {
-  return process.env.TEST_DATA_MODE === "faker"
+  return process.env.TEST_SUITE === "e2e"
     ? fakerRegistrationData()
     : fixedRegistrationData();
 }

@@ -10,7 +10,7 @@ import {
 test(
   "Login User with correct email and password",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, login, accountDeleted, testUser }) => {
+  async ({ page, homePage, loginPage, accountDeletedPage, testUser }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
     // The `testUser` fixture registers an account via the API beforehand,
@@ -22,15 +22,15 @@ test(
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
       await clickSignupLoginLink(page, homePage);
-      await expect(await login.getLoginToYourAccountHeading()).toBeVisible();
+      await expect(await loginPage.getLoginToYourAccountHeading()).toBeVisible();
     });
 
     await test.step("Steps 6-8: Enter correct email address and password, click 'login' and verify that 'Logged in as username' is visible", async () => {
-      await loginAsTestUserAndVerifyLoggedIn(page, login, homePage, testUser);
+      await loginAsTestUserAndVerifyLoggedIn(page, loginPage, homePage, testUser);
     });
 
     await test.step("Steps 9-10: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
-      await deleteAccountAndVerifyDeleted(page, homePage, accountDeleted);
+      await deleteAccountAndVerifyDeleted(page, homePage, accountDeletedPage);
     });
   },
 );
@@ -39,7 +39,7 @@ test(
 test(
   "Login User with incorrect email and password",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, login }) => {
+  async ({ page, homePage, loginPage }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
     // No `testUser` fixture needed here - this test logs in with a
@@ -51,20 +51,20 @@ test(
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
       await clickSignupLoginLink(page, homePage);
-      await expect(await login.getLoginToYourAccountHeading()).toBeVisible();
+      await expect(await loginPage.getLoginToYourAccountHeading()).toBeVisible();
     });
 
     await test.step("Steps 6-8: Enter incorrect email address and password, click 'login' and Verify error 'Your email or password is incorrect!' is visible", async () => {
       // Step 6: Enter incorrect email address and password
-      await login.setEmailInput("invalid@email.com");
-      await login.setPasswordInput("password");
+      await loginPage.setEmailInput("invalid@email.com");
+      await loginPage.setPasswordInput("password");
 
       // Step 7: Click 'login' button
-      await login.clickLoginButton();
-      await expect(page).toHaveURL(login.path); //Still on login page
+      await loginPage.clickLoginButton();
+      await expect(page).toHaveURL(loginPage.path); //Still on login page
 
       // Step 8: Verify error 'Your email or password is incorrect!' is visible
-      await expect(await login.getEmailOrPasswordInvalidError()).toBeVisible();
+      await expect(await loginPage.getEmailOrPasswordInvalidError()).toBeVisible();
     });
   },
 );
@@ -73,7 +73,7 @@ test(
 test(
   "Logout User",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, login, testUser }) => {
+  async ({ page, homePage, loginPage, testUser }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
     // The `testUser` fixture registers an account via the API beforehand,
@@ -85,11 +85,11 @@ test(
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
       await clickSignupLoginLink(page, homePage);
-      await expect(await login.getLoginToYourAccountHeading()).toBeVisible();
+      await expect(await loginPage.getLoginToYourAccountHeading()).toBeVisible();
     });
 
     await test.step("Steps 6-8: Enter correct email address and password, click 'login' and verify that 'Logged in as username' is visible", async () => {
-      await loginAsTestUserAndVerifyLoggedIn(page, login, homePage, testUser);
+      await loginAsTestUserAndVerifyLoggedIn(page, loginPage, homePage, testUser);
     });
 
     await test.step("Steps 9-10: Click 'Logout' button and Verify that user is navigated to login page", async () => {
@@ -97,7 +97,7 @@ test(
       await homePage.header.clickLogoutLink();
 
       // Step 10: Verify that user is navigated to login page
-      await expect(page).toHaveURL(login.path);
+      await expect(page).toHaveURL(loginPage.path);
     });
   },
 );

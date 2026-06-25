@@ -1,4 +1,5 @@
 import { Page } from "@playwright/test";
+import { dismissCookieConsent } from "./dismissCookieConsent";
 
 export class Header {
   constructor(private readonly page: Page) {}
@@ -12,7 +13,7 @@ export class Header {
   }
 
   async clickProductsLink() {
-    await this.dismissCookieConsent();
+    await dismissCookieConsent(this.page);
     const productsLink = await this.getProductsLink();
     await productsLink.click();
   }
@@ -21,12 +22,18 @@ export class Header {
     return this.page.getByRole("link", { name: "Cart" });
   }
 
+  async clickCartLink() {
+    await dismissCookieConsent(this.page);
+    const cartLink = await this.getCartLink();
+    await cartLink.click();
+  }
+
   async getLoginLink() {
     return this.page.getByRole("link", { name: "Signup / Login" });
   }
 
   async clickLoginLink() {
-    await this.dismissCookieConsent();
+    await dismissCookieConsent(this.page);
     const loginLink = await this.getLoginLink();
     await loginLink.click();
   }
@@ -38,20 +45,6 @@ export class Header {
   async clickLogoutLink() {
     const logoutlink = await this.getLogoutLink();
     await logoutlink.click();
-  }
-
-  private async dismissCookieConsent() {
-    const consentButton = this.page.getByRole("button", { name: "Consent" });
-
-    try {
-      // Wait up to 3000ms for the button to appear and click it
-      await consentButton.click({ timeout: 3000 });
-      console.log("Cookie consent dismissed.");
-    } catch (e) {
-      // If it times out, the pop-up didn't appear (like in Firefox).
-      // We safely log it and let the test continue.
-      console.log("Cookie consent banner did not appear, skipping.");
-    }
   }
 
   async getDeleteAccountLink() {
@@ -82,7 +75,7 @@ export class Header {
   }
 
   async clickContactUsLink() {
-    await this.dismissCookieConsent();
+    await dismissCookieConsent(this.page);
     const contactUsLink = await this.getContactUsLink();
     await contactUsLink.click();
   }
@@ -92,7 +85,7 @@ export class Header {
   }
 
   async clickTestCasesLink() {
-    await this.dismissCookieConsent();
+    await dismissCookieConsent(this.page);
     const testCasesLink = await this.getTestCasesLink();
     await testCasesLink.click();
   }

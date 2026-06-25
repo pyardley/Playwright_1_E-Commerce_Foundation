@@ -5,7 +5,7 @@ import { navigateToHomeAndVerify } from "@support/steps";
 test(
   "Verify Test Cases Page",
   { tag: ["@smoke", "@e2e"] },
-  async ({ page, homePage, testCases }) => {
+  async ({ page, homePage, testCasesPage }) => {
     // Step 1: Launch browser
     // Handled automatically by Playwright's `page` fixture - no action needed.
 
@@ -18,8 +18,8 @@ test(
       await homePage.header.clickTestCasesLink();
 
       // Step 5: Verify user is navigated to test cases page successfully
-      await expect(page).toHaveURL(testCases.path);
-      await expect(await testCases.getTestCasesHeading()).toBeVisible();
+      await expect(page).toHaveURL(testCasesPage.path);
+      await expect(await testCasesPage.getTestCasesHeading()).toBeVisible();
     });
   },
 );

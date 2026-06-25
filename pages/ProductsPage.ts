@@ -4,7 +4,7 @@ export interface ProductSummary {
   name: string;
   price: string;
 }
-export class Products extends BasePage {
+export class ProductsPage extends BasePage {
   readonly path = "/products";
 
   async getAllProductsHeading() {

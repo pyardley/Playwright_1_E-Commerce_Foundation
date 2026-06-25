@@ -1,9 +1,9 @@
 import { expect } from "@fixtures/fixtures";
 import type { Page } from "@playwright/test";
-import type { HomePage } from "@pages/Home";
-import type { Login } from "@pages/Login";
-import type { AccountDeleted } from "@pages/AccountDeleted";
-import type { Products } from "@pages/Products";
+import type { HomePage } from "@pages/HomePage";
+import type { LoginPage } from "@pages/LoginPage";
+import type { AccountDeletedPage } from "@pages/AccountDeletedPage";
+import type { ProductsPage } from "@pages/ProductsPage";
 import type { TestUser } from "@fixtures/fixtures";
 
 export async function navigateToHomeAndVerify(page: Page, homePage: HomePage) {
@@ -22,22 +22,22 @@ export async function clickSignupLoginLink(page: Page, homePage: HomePage) {
 export async function navigateToProductsAndVerify(
   page: Page,
   homePage: HomePage,
-  products: Products,
+  productsPage: ProductsPage,
 ) {
   await homePage.header.clickProductsLink();
   await expect(page).toHaveURL("/products");
-  await expect(await products.getAllProductsHeading()).toBeVisible();
+  await expect(await productsPage.getAllProductsHeading()).toBeVisible();
 }
 
 export async function loginAsTestUserAndVerifyLoggedIn(
   page: Page,
-  login: Login,
+  loginPage: LoginPage,
   homePage: HomePage,
   testUser: TestUser,
 ) {
-  await login.setEmailInput(testUser.email);
-  await login.setPasswordInput(testUser.password);
-  await login.clickLoginButton();
+  await loginPage.setEmailInput(testUser.email);
+  await loginPage.setPasswordInput(testUser.password);
+  await loginPage.clickLoginButton();
   await expect(page).toHaveURL(homePage.path);
   expect(await homePage.header.getLoggedInName()).toBe(testUser.name);
 }
@@ -45,9 +45,9 @@ export async function loginAsTestUserAndVerifyLoggedIn(
 export async function deleteAccountAndVerifyDeleted(
   page: Page,
   homePage: HomePage,
-  accountDeleted: AccountDeleted,
+  accountDeletedPage: AccountDeletedPage,
 ) {
   await homePage.header.clickDeleteAccountLink();
-  await expect(page).toHaveURL(accountDeleted.path);
-  await expect(await accountDeleted.getAccountDeletedHeading()).toBeVisible();
+  await expect(page).toHaveURL(accountDeletedPage.path);
+  await expect(await accountDeletedPage.getAccountDeletedHeading()).toBeVisible();
 }

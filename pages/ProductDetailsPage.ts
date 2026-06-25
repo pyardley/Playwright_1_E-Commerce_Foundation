@@ -9,7 +9,7 @@ export interface ProductDetailsInfo {
   brand: string;
 }
 
-export class ProductDetails extends BasePage {
+export class ProductDetailsPage extends BasePage {
   // /product_details/<id> - the id is only known after navigating here via
   // a "View Product" link, so this can't be a fixed string like other pages.
   readonly path = /\/product_details\/\d+/;

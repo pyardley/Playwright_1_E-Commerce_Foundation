@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class TestCases extends BasePage {
+export class TestCasesPage extends BasePage {
   readonly path = "/test_cases";
 
   async getTestCasesHeading() {

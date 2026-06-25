@@ -1,14 +1,16 @@
 import { test as base, expect, APIRequestContext } from "@playwright/test";
-import { HomePage } from "@pages/Home";
-import { Login } from "@pages/Login";
-import { Signup } from "@pages/Signup";
-import { AccountCreated } from "@pages/AccountCreated";
-import { AccountDeleted } from "@pages/AccountDeleted";
-import { ContactUs } from "@pages/ContactUs";
-import { TestCases } from "@pages/TestCases";
-import { Products } from "@pages/Products";
-import { ProductDetails } from "@pages/ProductDetails";
+import { HomePage } from "@pages/HomePage";
+import { LoginPage } from "@pages/LoginPage";
+import { SignupPage } from "@pages/SignupPage";
+import { AccountCreatedPage } from "@pages/AccountCreatedPage";
+import { AccountDeletedPage } from "@pages/AccountDeletedPage";
+import { ContactUsPage } from "@pages/ContactUsPage";
+import { TestCasesPage } from "@pages/TestCasesPage";
+import { ProductsPage } from "@pages/ProductsPage";
+import { ProductDetailsPage } from "@pages/ProductDetailsPage";
+import { CartPage } from "@pages/CartPage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
+import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
 
 export type TestUser = RegistrationData;
 
@@ -70,28 +72,40 @@ async function deleteUserViaApi(request: APIRequestContext, user: TestUser) {
 
 type Fixtures = {
   homePage: HomePage;
-  login: Login;
-  signup: Signup;
-  accountCreated: AccountCreated;
-  accountDeleted: AccountDeleted;
-  contactUs: ContactUs;
-  testCases: TestCases;
-  products: Products;
-  productDetails: ProductDetails;
+  loginPage: LoginPage;
+  signupPage: SignupPage;
+  accountCreatedPage: AccountCreatedPage;
+  accountDeletedPage: AccountDeletedPage;
+  contactUsPage: ContactUsPage;
+  testCasesPage: TestCasesPage;
+  productsPage: ProductsPage;
+  productDetailsPage: ProductDetailsPage;
+  cartPage: CartPage;
   testUser: TestUser;
   registrationData: RegistrationData;
+  blockAdDomains: void;
 };
 
 export const test = base.extend<Fixtures>({
+  blockAdDomains: [
+    async ({ page }, use) => {
+      if (process.env.TEST_SUITE !== "e2e") {
+        await page.route(AD_DOMAIN_PATTERN, (route) => route.abort());
+      }
+      await use();
+    },
+    { auto: true },
+  ],
   homePage: async ({ page }, use) => use(new HomePage(page)),
-  login: async ({ page }, use) => use(new Login(page)),
-  signup: async ({ page }, use) => use(new Signup(page)),
-  accountCreated: async ({ page }, use) => use(new AccountCreated(page)),
-  accountDeleted: async ({ page }, use) => use(new AccountDeleted(page)),
-  contactUs: async ({ page }, use) => use(new ContactUs(page)),
-  testCases: async ({ page }, use) => use(new TestCases(page)),
-  products: async ({ page }, use) => use(new Products(page)),
-  productDetails: async ({ page }, use) => use(new ProductDetails(page)),
+  loginPage: async ({ page }, use) => use(new LoginPage(page)),
+  signupPage: async ({ page }, use) => use(new SignupPage(page)),
+  accountCreatedPage: async ({ page }, use) => use(new AccountCreatedPage(page)),
+  accountDeletedPage: async ({ page }, use) => use(new AccountDeletedPage(page)),
+  contactUsPage: async ({ page }, use) => use(new ContactUsPage(page)),
+  testCasesPage: async ({ page }, use) => use(new TestCasesPage(page)),
+  productsPage: async ({ page }, use) => use(new ProductsPage(page)),
+  cartPage: async ({ page }, use) => use(new CartPage(page)),
+  productDetailsPage: async ({ page }, use) => use(new ProductDetailsPage(page)),
   testUser: async ({ request }, use) => {
     const user: TestUser = buildRegistrationData();
 

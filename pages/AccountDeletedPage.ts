@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class AccountDeleted extends BasePage {
+export class AccountDeletedPage extends BasePage {
   readonly path = "/delete_account";
 
   async getAccountDeletedHeading() {

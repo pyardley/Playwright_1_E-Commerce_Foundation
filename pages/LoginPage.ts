@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class Login extends BasePage {
+export class LoginPage extends BasePage {
   readonly path = "/login";
 
   async getLoginForm() {

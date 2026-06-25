@@ -1,6 +1,6 @@
 import { BasePage } from "./BasePage";
 
-export class Signup extends BasePage {
+export class SignupPage extends BasePage {
   readonly path = "/signup";
 
   async getEnterAccountInformationHeading() {
