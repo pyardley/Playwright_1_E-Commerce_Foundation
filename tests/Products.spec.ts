@@ -20,17 +20,17 @@ test(
       await navigateToProductsAndVerify(page, homePage, productsPage);
 
       // Step 6: The products list is visible
-      await expect(await productsPage.getProductListContainer()).toBeVisible();
-      expect(await productsPage.getProductCount()).toBeGreaterThan(0);
+      await expect(await productsPage.productList.getContainer()).toBeVisible();
+      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(0);
     });
 
     const expectedSummary =
       await test.step("Capture the first product's listed name/price to verify against on the detail page", async () =>
-        (await productsPage.getProductCard(0)).getSummary());
+        (await productsPage.productList.getProductCard(0)).getSummary());
 
     await test.step("Steps 7-8: Click on 'View Product' of first product and Verify User is landed to product detail page", async () => {
       // Step 7: Click on 'View Product' of first product
-      await (await productsPage.getProductCard(0)).clickViewProduct();
+      await (await productsPage.productList.getProductCard(0)).clickViewProduct();
 
       // Step 8: User is landed to product detail page
       await expect(page).toHaveURL(productDetailsPage.path);
@@ -83,7 +83,7 @@ test(
       ).toBeVisible();
 
       // Step 8:Verify all the products related to search are visible
-      const allProducts = await productsPage.getAllDisplayedProductNames();
+      const allProducts = await productsPage.productList.getAllDisplayedProductNames();
       for (const productName of allProducts) {
         expect(productName.toLowerCase()).toContain("sleeves");
       }
@@ -107,16 +107,16 @@ test(
       // Step 4: Click on 'Products' button
       await navigateToProductsAndVerify(page, homePage, productsPage);
 
-      await expect(await productsPage.getProductListContainer()).toBeVisible();
-      expect(await productsPage.getProductCount()).toBeGreaterThan(0);
+      await expect(await productsPage.productList.getContainer()).toBeVisible();
+      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(0);
     });
 
     await test.step("Steps 5-6: Hover over first product and click 'Add to cart', Verify Added! pop-up and Click Continue Shopping", async () => {
       // Step 5: Hover over first product and click 'Add to cart'
-      await (await productsPage.getProductCard(0)).hoverAndClickAddToCart();
+      await (await productsPage.productList.getProductCard(0)).hoverAndClickAddToCart();
 
       // Verify Add to cart pop-up appears
-      const addedToCart = await productsPage.getAddedToCartModal();
+      const addedToCart = productsPage.addedToCartModal;
       await expect(await addedToCart.getHeader()).toBeVisible();
 
       // Step 6: Click 'Continue Shopping' button
@@ -125,10 +125,10 @@ test(
 
     await test.step("Steps 7-8: Hover over second product and click 'Add to cart', Verify Added! pop-up and Click 'View Cart' button", async () => {
       // Step 7: Hover over first product and click 'Add to cart'
-      await (await productsPage.getProductCard(1)).hoverAndClickAddToCart();
+      await (await productsPage.productList.getProductCard(1)).hoverAndClickAddToCart();
 
       // Verify Add to cart pop-up appears
-      const addedToCart = await productsPage.getAddedToCartModal();
+      const addedToCart = productsPage.addedToCartModal;
       await expect(await addedToCart.getHeader()).toBeVisible();
 
       // Step 8: Click 'Continue Shopping' button

@@ -1,4 +1,6 @@
+import { Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
+import { AddedToCartModal } from "@components/AddedToCartModal";
 
 export interface ProductDetailsInfo {
   productName: string;
@@ -13,10 +15,20 @@ export class ProductDetailsPage extends BasePage {
   // /product_details/<id> - the id is only known after navigating here via
   // a "View Product" link, so this can't be a fixed string like other pages.
   readonly path = /\/product_details\/\d+/;
+  readonly addedToCartModal: AddedToCartModal;
+
+  constructor(page: Page) {
+    super(page);
+    this.addedToCartModal = new AddedToCartModal(page);
+  }
+
+  async getProductInformationLocator() {
+    return this.page.locator(".product-information");
+  }
 
   async getProductDetails(): Promise<ProductDetailsInfo> {
     // Isolate the specific card container
-    const productDetails = this.page.locator(".product-information");
+    const productDetails = await this.getProductInformationLocator();
 
     // Ensure the card is rendered before scraping
     await productDetails.waitFor({ state: "visible" });
@@ -48,5 +60,23 @@ export class ProductDetailsPage extends BasePage {
       condition: condition.trim(),
       brand: brand.trim(),
     };
+  }
+
+  async getAddToCartBtn() {
+    return (await this.getProductInformationLocator()).getByRole("button", {
+      name: "Add to cart",
+    });
+  }
+
+  async clickAddToCartBtn() {
+    await (await this.getAddToCartBtn()).click();
+  }
+
+  async getQuantityInput() {
+    return (await this.getProductInformationLocator()).getByRole("spinbutton");
+  }
+
+  async setQuantityInput(quantity: string) {
+    await (await this.getQuantityInput()).fill(quantity);
   }
 }
