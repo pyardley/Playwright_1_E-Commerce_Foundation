@@ -8,6 +8,10 @@ import type { AccountCreatedPage } from "@pages/AccountCreatedPage";
 import type { ProductsPage } from "@pages/ProductsPage";
 import type { SignupPage } from "@pages/SignupPage";
 import type { AddressDetails } from "@pages/CheckoutPage";
+import type { OrderTable } from "@components/OrderTable";
+import type { ProductSummary } from "@components/ProductList";
+import type { PaymentPage } from "@pages/PaymentPage";
+import type { PaymentDonePage } from "@pages/PaymentDonePage";
 import type { TestUser } from "@fixtures/fixtures";
 import type { RegistrationData } from "@support/testData";
 
@@ -130,4 +134,61 @@ export async function verifyAddressMatchesRegistrationData(
   );
   expect(await addr.getCountry()).toBe(registrationData.country);
   expect(await addr.getPhoneNumber()).toBe(registrationData.mobileNumber);
+}
+
+export async function verifyOrderLineMatchesProduct(
+  orderTable: OrderTable,
+  index: number,
+  product: ProductSummary,
+  quantity = 1,
+) {
+  const orderLine = await orderTable.getLine(index);
+  expect(await orderLine.getName()).toBe(product.name);
+  expect(await orderLine.getPrice()).toBe(product.price);
+  expect(await orderLine.getQuantity()).toBe(String(quantity));
+
+  const unitPrice = Number(product.price.replace(/\D/g, ""));
+  expect(await orderLine.getTotalPrice()).toBe(`Rs. ${unitPrice * quantity}`);
+}
+
+export async function verifyOrderTotalAmount(
+  orderTable: OrderTable,
+  products: ProductSummary[],
+) {
+  const total = products.reduce(
+    (sum, product) => sum + Number(product.price.replace(/\D/g, "")),
+    0,
+  );
+  expect(await orderTable.getTotalAmount()).toBe(`Rs. ${total}`);
+}
+
+export async function payAndVerifyOrderPlaced(
+  paymentPage: PaymentPage,
+  paymentDonePage: PaymentDonePage,
+  cardDetails: {
+    nameOnCard?: string;
+    cardNumber?: string;
+    cvc?: string;
+    expirationMM?: string;
+    expirationYYYY?: string;
+  } = {},
+) {
+  const {
+    nameOnCard = "Mr John Doe",
+    cardNumber = "1234 5678 9876 6543",
+    cvc = "999",
+    expirationMM = "10",
+    expirationYYYY = "2030",
+  } = cardDetails;
+
+  await paymentPage.setNameOnCardInput(nameOnCard);
+  await paymentPage.setCardNumberInput(cardNumber);
+  await paymentPage.setCVCInput(cvc);
+  await paymentPage.setExpirationMMInput(expirationMM);
+  await paymentPage.setExpirationYYYYInput(expirationYYYY);
+
+  await paymentPage.clickPayAndConfirmOrderButton();
+
+  await expect(await paymentDonePage.getOrderPlacedHeader()).toBeVisible();
+  await expect(await paymentDonePage.getOrderConfirmation()).toBeVisible();
 }

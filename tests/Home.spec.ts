@@ -1,5 +1,8 @@
 import { test, expect } from "@fixtures/fixtures";
-import { navigateToHomeAndVerify } from "@support/steps";
+import {
+  navigateToHomeAndVerify,
+  verifyOrderLineMatchesProduct,
+} from "@support/steps";
 
 // Test Case 10: Verify Subscription in home page
 test(
@@ -77,13 +80,12 @@ test(
 
       // Step 9: Verify both products are added to Cart
       // Step 10: Verify their prices, quantity and total price
-      const cart1 = await cartPage.orderTable.getLine(0);
-      expect(await cart1.getName()).toBe(selectedProduct.name);
-      expect(await cart1.getPrice()).toBe(selectedProduct.price);
-      expect(await cart1.getQuantity()).toBe("4");
-
-      const unitPrice = Number(selectedProduct.price.replace(/\D/g, ""));
-      expect(await cart1.getTotalPrice()).toBe(`Rs. ${unitPrice * 4}`);
+      await verifyOrderLineMatchesProduct(
+        cartPage.orderTable,
+        0,
+        selectedProduct,
+        4,
+      );
     });
   },
 );
