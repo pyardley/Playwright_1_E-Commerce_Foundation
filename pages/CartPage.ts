@@ -21,12 +21,12 @@ export class CheckoutModal {
     await (await this.getRegisterLoginLink()).click();
   }
 
-  async getContinueOnCartBtn() {
+  async getContinueOnCartButton() {
     return this.modalLocator.getByRole("button", { name: "Continue On Cart" });
   }
 
-  async clickContinueOnCartBtn() {
-    await (await this.getContinueOnCartBtn()).click();
+  async clickContinueOnCartButton() {
+    await (await this.getContinueOnCartButton()).click();
   }
 }
 
@@ -49,15 +49,17 @@ export class CartPage extends BasePage {
 
   // No getByRole("link"/"button") match here: the markup is an <a> with no
   // href, which has no implicit ARIA role at all.
-  async getProceedToCheckoutBtn() {
+  async getProceedToCheckoutButton() {
     return this.page.getByText("Proceed To Checkout", { exact: true });
   }
 
-  async clickProceedToCheckoutBtn() {
-    await (await this.getProceedToCheckoutBtn()).click();
+  async clickProceedToCheckoutButton() {
+    await (await this.getProceedToCheckoutButton()).click();
   }
 
   async getCheckoutModal() {
-    return new CheckoutModal(this.page.locator("#checkoutModal .modal-content"));
+    return new CheckoutModal(
+      this.page.locator("#checkoutModal .modal-content"),
+    );
   }
 }

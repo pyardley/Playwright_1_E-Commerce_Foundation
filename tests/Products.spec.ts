@@ -21,7 +21,9 @@ test(
 
       // Step 6: The products list is visible
       await expect(await productsPage.productList.getContainer()).toBeVisible();
-      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(0);
+      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(
+        0,
+      );
     });
 
     const expectedSummary =
@@ -30,7 +32,9 @@ test(
 
     await test.step("Steps 7-8: Click on 'View Product' of first product and Verify User is landed to product detail page", async () => {
       // Step 7: Click on 'View Product' of first product
-      await (await productsPage.productList.getProductCard(0)).clickViewProduct();
+      await (
+        await productsPage.productList.getProductCard(0)
+      ).clickViewProduct();
 
       // Step 8: User is landed to product detail page
       await expect(page).toHaveURL(productDetailsPage.path);
@@ -74,7 +78,7 @@ test(
 
     await test.step("Steps 6-7: Enter product name in search input and click search button. Verify 'SEARCHED PRODUCTS' is visible. Verify all the products related to search are visible.", async () => {
       // Step 6: Enter product name in search input and click search button
-      await productsPage.searchForProduct("sleeves");
+      await productsPage.searchForProductInput("sleeves");
 
       // Step 7: Verify 'SEARCHED PRODUCTS' is visible
       await expect(page).toHaveURL("/products?search=sleeves");
@@ -83,7 +87,8 @@ test(
       ).toBeVisible();
 
       // Step 8:Verify all the products related to search are visible
-      const allProducts = await productsPage.productList.getAllDisplayedProductNames();
+      const allProducts =
+        await productsPage.productList.getAllDisplayedProductNames();
       for (const productName of allProducts) {
         expect(productName.toLowerCase()).toContain("sleeves");
       }
@@ -108,12 +113,13 @@ test(
       await navigateToProductsAndVerify(page, homePage, productsPage);
 
       await expect(await productsPage.productList.getContainer()).toBeVisible();
-      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(0);
+      expect(await productsPage.productList.getProductCount()).toBeGreaterThan(
+        0,
+      );
     });
 
-    const firstProduct = await test.step(
-      "Steps 5-6: Hover over first product and click 'Add to cart', Verify Added! pop-up and Click Continue Shopping",
-      async () => {
+    const firstProduct =
+      await test.step("Steps 5-6: Hover over first product and click 'Add to cart', Verify Added! pop-up and Click Continue Shopping", async () => {
         // Step 5: Hover over first product and click 'Add to cart'
         const productCard = await productsPage.productList.getProductCard(0);
         const summary = await productCard.getSummary();
@@ -127,12 +133,10 @@ test(
         await addedToCart.clickContinueShoppingBtn();
 
         return summary;
-      },
-    );
+      });
 
-    const secondProduct = await test.step(
-      "Steps 7-8: Hover over second product and click 'Add to cart', Verify Added! pop-up and Click 'View Cart' button",
-      async () => {
+    const secondProduct =
+      await test.step("Steps 7-8: Hover over second product and click 'Add to cart', Verify Added! pop-up and Click 'View Cart' button", async () => {
         // Step 7: Hover over first product and click 'Add to cart'
         const productCard = await productsPage.productList.getProductCard(1);
         const summary = await productCard.getSummary();
@@ -147,8 +151,7 @@ test(
         await expect(await cartPage.getShoppingCartHeader()).toBeVisible();
 
         return summary;
-      },
-    );
+      });
 
     await test.step("Steps 9-10: Verify both products are added to Cart and Verify their prices, quantity and total price", async () => {
       expect(await cartPage.orderTable.getLineCount()).toBe(2);

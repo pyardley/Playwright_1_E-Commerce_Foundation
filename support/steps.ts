@@ -2,6 +2,7 @@ import { expect } from "@fixtures/fixtures";
 import type { Page } from "@playwright/test";
 import type { HomePage } from "@pages/HomePage";
 import type { LoginPage } from "@pages/LoginPage";
+import type { Header } from "@components/Header";
 import type { AccountDeletedPage } from "@pages/AccountDeletedPage";
 import type { AccountCreatedPage } from "@pages/AccountCreatedPage";
 import type { ProductsPage } from "@pages/ProductsPage";
@@ -48,10 +49,10 @@ export async function loginAsTestUserAndVerifyLoggedIn(
 
 export async function deleteAccountAndVerifyDeleted(
   page: Page,
-  homePage: HomePage,
+  header: Header,
   accountDeletedPage: AccountDeletedPage,
 ) {
-  await homePage.header.clickDeleteAccountLink();
+  await header.clickDeleteAccountLink();
   await expect(page).toHaveURL(accountDeletedPage.path);
   await expect(
     await accountDeletedPage.getAccountDeletedHeading(),

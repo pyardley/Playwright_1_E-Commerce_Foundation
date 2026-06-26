@@ -71,7 +71,11 @@ test(
     });
 
     await test.step("Steps 17-18: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
-      await deleteAccountAndVerifyDeleted(page, homePage, accountDeletedPage);
+      await deleteAccountAndVerifyDeleted(
+        page,
+        homePage.header,
+        accountDeletedPage,
+      );
     });
 
     await test.step("Steps 18 (continued): Click 'Continue' button on the Account Deleted page", async () => {
@@ -136,6 +140,9 @@ test(
     signupPage,
     accountCreatedPage,
     checkoutPage,
+    paymentPage,
+    paymentDonePage,
+    accountDeletedPage,
     registrationData,
   }) => {
     // Step 1: Launch browser
@@ -145,9 +152,8 @@ test(
       await navigateToHomeAndVerify(page, homePage);
     });
 
-    const addedProduct = await test.step(
-      "Steps 4-6: Add products to cart, Click 'Cart' button and Verify that cart page is displayed",
-      async () => {
+    const addedProduct =
+      await test.step("Steps 4-6: Add products to cart, Click 'Cart' button and Verify that cart page is displayed", async () => {
         // Step 3: 4. Add products to cart
         const productCard = await homePage.productList.getProductCard(0);
         const summary = await productCard.getSummary();
@@ -161,12 +167,11 @@ test(
         await expect(page).toHaveURL(cartPage.path);
 
         return summary;
-      },
-    );
+      });
 
     await test.step("Steps 7: Click Proceed To Checkout and verify checkout modal", async () => {
       // Step 7: Click Proceed To Checkout
-      await cartPage.clickProceedToCheckoutBtn();
+      await cartPage.clickProceedToCheckoutButton();
 
       const checkoutModal = await cartPage.getCheckoutModal();
       await expect(await checkoutModal.getHeading()).toBeVisible();
@@ -218,7 +223,7 @@ test(
       await homePage.header.clickCartLink();
 
       // Step 13: Click 'Proceed To Checkout' button
-      await cartPage.clickProceedToCheckoutBtn();
+      await cartPage.clickProceedToCheckoutButton();
 
       // Step 14: Verify Address Details and Review Your Order
       await verifyAddressMatchesRegistrationData(
@@ -238,6 +243,39 @@ test(
       expect(await orderLine.getTotalPrice()).toBe(addedProduct.price);
       expect(await checkoutPage.orderTable.getTotalAmount()).toBe(
         addedProduct.price,
+      );
+    });
+
+    await test.step("Steps 15: Enter description in comment text area and click 'Place Order'", async () => {
+      // Step 15: Enter description in comment text area and click 'Place Order'
+      await checkoutPage.setCommentInput("Comment text");
+
+      await checkoutPage.clickPlaceOrderButton();
+      await expect(page).toHaveURL(paymentPage.path);
+    });
+
+    await test.step("Steps 16-18: Enter payment details: Name on Card, Card Number, CVC, Expiration date. Click 'Pay and Confirm Order' button. Verify success message 'Your order has been placed successfully!'", async () => {
+      // Step 16:Enter payment details: Name on Card, Card Number, CVC, Expiration date
+      await paymentPage.setNameOnCardInput("Mr John Doe");
+      await paymentPage.setCardNumberInput("1234 5678 9876 6543");
+      await paymentPage.setCVCInput("999");
+      await paymentPage.setExpirationMMInput("10");
+      await paymentPage.setExpirationYYYYInput("2030");
+
+      // Step 17: Click 'Pay and Confirm Order' button
+      await paymentPage.clickPayAndConfirmOrderButton();
+
+      // Step 18:Verify success message 'Your order has been placed successfully!'
+      await expect(await paymentDonePage.getOrderPlacedHeader()).toBeVisible();
+      await expect(await paymentDonePage.getOrderConfirmation()).toBeVisible();
+    });
+
+    await test.step("Steps 19-20: Click 'Delete Account' button and Verify 'ACCOUNT DELETED!' and click 'Continue' button", async () => {
+      // Step 15: Enter description in comment text area and click 'Place Order'
+      await deleteAccountAndVerifyDeleted(
+        page,
+        paymentDonePage.header,
+        accountDeletedPage,
       );
     });
   },

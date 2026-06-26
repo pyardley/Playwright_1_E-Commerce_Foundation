@@ -10,6 +10,8 @@ import { ProductsPage } from "@pages/ProductsPage";
 import { ProductDetailsPage } from "@pages/ProductDetailsPage";
 import { CartPage } from "@pages/CartPage";
 import { CheckoutPage } from "@pages/CheckoutPage";
+import { PaymentPage } from "@pages/PaymentPage";
+import { PaymentDonePage } from "@pages/PaymentDonePage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
 
@@ -83,6 +85,8 @@ type Fixtures = {
   productDetailsPage: ProductDetailsPage;
   cartPage: CartPage;
   checkoutPage: CheckoutPage;
+  paymentPage: PaymentPage;
+  paymentDonePage: PaymentDonePage;
   testUser: TestUser;
   registrationData: RegistrationData;
   blockAdDomains: void;
@@ -110,6 +114,8 @@ export const test = base.extend<Fixtures>({
   productsPage: async ({ page }, use) => use(new ProductsPage(page)),
   cartPage: async ({ page }, use) => use(new CartPage(page)),
   checkoutPage: async ({ page }, use) => use(new CheckoutPage(page)),
+  paymentPage: async ({ page }, use) => use(new PaymentPage(page)),
+  paymentDonePage: async ({ page }, use) => use(new PaymentDonePage(page)),
   productDetailsPage: async ({ page }, use) =>
     use(new ProductDetailsPage(page)),
   testUser: async ({ request }, use) => {

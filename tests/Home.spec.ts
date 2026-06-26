@@ -44,9 +44,8 @@ test(
       await navigateToHomeAndVerify(page, homePage);
     });
 
-    const selectedProduct = await test.step(
-      "Steps 4-5: Click 'View Product' for any product on home page and Verify product detail is opened",
-      async () => {
+    const selectedProduct =
+      await test.step("Steps 4-5: Click 'View Product' for any product on home page and Verify product detail is opened", async () => {
         // Step 4: Click on 'Products' button
         const productCard = await homePage.productList.getProductCard(0);
         const summary = await productCard.getSummary();
@@ -56,15 +55,14 @@ test(
         await expect(page).toHaveURL(productDetailsPage.path);
 
         return summary;
-      },
-    );
+      });
 
     await test.step("Steps 6-8: Increase quantity to 4, Click 'Add to cart' button and Verify Added! pop-up and Click Click 'View Cart' button", async () => {
       // Step 6: Increase quantity to 4
       await productDetailsPage.setQuantityInput("4");
 
       // Step 7: Click 'Add to cart' button
-      await productDetailsPage.clickAddToCartBtn();
+      await productDetailsPage.clickAddToCartButton();
       await expect(
         await productDetailsPage.addedToCartModal.getHeader(),
       ).toBeVisible();

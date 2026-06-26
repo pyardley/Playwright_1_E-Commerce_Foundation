@@ -62,14 +62,14 @@ export class ProductDetailsPage extends BasePage {
     };
   }
 
-  async getAddToCartBtn() {
+  async getAddToCartButton() {
     return (await this.getProductInformationLocator()).getByRole("button", {
       name: "Add to cart",
     });
   }
 
-  async clickAddToCartBtn() {
-    await (await this.getAddToCartBtn()).click();
+  async clickAddToCartButton() {
+    await (await this.getAddToCartButton()).click();
   }
 
   async getQuantityInput() {

@@ -30,7 +30,11 @@ test(
     });
 
     await test.step("Steps 9-10: Click 'Delete Account' button and verify 'ACCOUNT DELETED!' is visible", async () => {
-      await deleteAccountAndVerifyDeleted(page, homePage, accountDeletedPage);
+      await deleteAccountAndVerifyDeleted(
+        page,
+        homePage.header,
+        accountDeletedPage,
+      );
     });
   },
 );

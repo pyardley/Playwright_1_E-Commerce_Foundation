@@ -60,4 +60,20 @@ export class CheckoutPage extends BasePage {
   async getBillingAddress() {
     return new AddressDetails(this.page.locator("#address_invoice"));
   }
+
+  async getPlaceOrderButton() {
+    return this.page.getByRole("link", { name: "Place Order" });
+  }
+
+  async clickPlaceOrderButton() {
+    await (await this.getPlaceOrderButton()).click();
+  }
+
+  async getCommentInput() {
+    return this.page.locator("textarea.form-control");
+  }
+
+  async setCommentInput(comment: string) {
+    await (await this.getCommentInput()).fill(comment);
+  }
 }
