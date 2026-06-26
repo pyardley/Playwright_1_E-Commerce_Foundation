@@ -111,47 +111,61 @@ test(
       expect(await productsPage.productList.getProductCount()).toBeGreaterThan(0);
     });
 
-    await test.step("Steps 5-6: Hover over first product and click 'Add to cart', Verify Added! pop-up and Click Continue Shopping", async () => {
-      // Step 5: Hover over first product and click 'Add to cart'
-      await (await productsPage.productList.getProductCard(0)).hoverAndClickAddToCart();
+    const firstProduct = await test.step(
+      "Steps 5-6: Hover over first product and click 'Add to cart', Verify Added! pop-up and Click Continue Shopping",
+      async () => {
+        // Step 5: Hover over first product and click 'Add to cart'
+        const productCard = await productsPage.productList.getProductCard(0);
+        const summary = await productCard.getSummary();
+        await productCard.hoverAndClickAddToCart();
 
-      // Verify Add to cart pop-up appears
-      const addedToCart = productsPage.addedToCartModal;
-      await expect(await addedToCart.getHeader()).toBeVisible();
+        // Verify Add to cart pop-up appears
+        const addedToCart = productsPage.addedToCartModal;
+        await expect(await addedToCart.getHeader()).toBeVisible();
 
-      // Step 6: Click 'Continue Shopping' button
-      await addedToCart.clickContinueShoppingBtn();
-    });
+        // Step 6: Click 'Continue Shopping' button
+        await addedToCart.clickContinueShoppingBtn();
 
-    await test.step("Steps 7-8: Hover over second product and click 'Add to cart', Verify Added! pop-up and Click 'View Cart' button", async () => {
-      // Step 7: Hover over first product and click 'Add to cart'
-      await (await productsPage.productList.getProductCard(1)).hoverAndClickAddToCart();
+        return summary;
+      },
+    );
 
-      // Verify Add to cart pop-up appears
-      const addedToCart = productsPage.addedToCartModal;
-      await expect(await addedToCart.getHeader()).toBeVisible();
+    const secondProduct = await test.step(
+      "Steps 7-8: Hover over second product and click 'Add to cart', Verify Added! pop-up and Click 'View Cart' button",
+      async () => {
+        // Step 7: Hover over first product and click 'Add to cart'
+        const productCard = await productsPage.productList.getProductCard(1);
+        const summary = await productCard.getSummary();
+        await productCard.hoverAndClickAddToCart();
 
-      // Step 8: Click 'Continue Shopping' button
-      await addedToCart.clickViewCartLink();
-      await expect(await cartPage.getShoppingCartHeader()).toBeVisible();
-    });
+        // Verify Add to cart pop-up appears
+        const addedToCart = productsPage.addedToCartModal;
+        await expect(await addedToCart.getHeader()).toBeVisible();
+
+        // Step 8: Click 'Continue Shopping' button
+        await addedToCart.clickViewCartLink();
+        await expect(await cartPage.getShoppingCartHeader()).toBeVisible();
+
+        return summary;
+      },
+    );
 
     await test.step("Steps 9-10: Verify both products are added to Cart and Verify their prices, quantity and total price", async () => {
-      expect(await cartPage.getCartListCount()).toBe(2);
+      expect(await cartPage.orderTable.getLineCount()).toBe(2);
 
       // Step 9: Verify both products are added to Cart
       // Step 10: Verify their prices, quantity and total price
-      const cart1 = await cartPage.getCartLine(0);
-      expect(await cart1.getName()).toBe("Blue Top");
-      expect(await cart1.getPrice()).toBe("Rs. 500");
+      const cart1 = await cartPage.orderTable.getLine(0);
+      expect(await cart1.getName()).toBe(firstProduct.name);
+      expect(await cart1.getPrice()).toBe(firstProduct.price);
       expect(await cart1.getQuantity()).toBe("1");
-      expect(await cart1.getTotalPrice()).toBe("Rs. 500");
+      expect(await cart1.getTotalPrice()).toBe(firstProduct.price);
 
-      const cart2 = await cartPage.getCartLine(1);
-      expect(await cart2.getName()).toBe("Men Tshirt");
-      expect(await cart2.getPrice()).toBe("Rs. 400");
+      const cart2 = await cartPage.orderTable.getLine(1);
+      expect(await cart2.getName()).toBe(secondProduct.name);
+      expect(await cart2.getPrice()).toBe(secondProduct.price);
       expect(await cart2.getQuantity()).toBe("1");
-      expect(await cart2.getTotalPrice()).toBe("Rs. 400");
+      expect(await cart2.getTotalPrice()).toBe(secondProduct.price);
     });
   },
 );

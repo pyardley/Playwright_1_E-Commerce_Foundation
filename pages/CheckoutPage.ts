@@ -2,6 +2,7 @@ import { Locator, Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
 import { Header } from "@components/Header";
 import { Footer } from "@components/Footer";
+import { OrderTable } from "@components/OrderTable";
 
 export class AddressDetails {
   constructor(private readonly addrLocator: Locator) {}
@@ -43,11 +44,13 @@ export class CheckoutPage extends BasePage {
   readonly path = "/view_cart";
   readonly header: Header;
   readonly footer: Footer;
+  readonly orderTable: OrderTable;
 
   constructor(page: Page) {
     super(page);
     this.header = new Header(page);
     this.footer = new Footer(page);
+    this.orderTable = new OrderTable(page);
   }
 
   async getDeliveryAddress() {

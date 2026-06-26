@@ -145,19 +145,24 @@ test(
       await navigateToHomeAndVerify(page, homePage);
     });
 
-    await test.step("Steps 4-6: Add products to cart, Click 'Cart' button and Verify that cart page is displayed", async () => {
-      // Step 3: 4. Add products to cart
-      await (
-        await homePage.productList.getProductCard(1)
-      ).hoverAndClickAddToCart();
-      await homePage.addedToCartModal.clickContinueShoppingBtn();
+    const addedProduct = await test.step(
+      "Steps 4-6: Add products to cart, Click 'Cart' button and Verify that cart page is displayed",
+      async () => {
+        // Step 3: 4. Add products to cart
+        const productCard = await homePage.productList.getProductCard(0);
+        const summary = await productCard.getSummary();
+        await productCard.hoverAndClickAddToCart();
+        await homePage.addedToCartModal.clickContinueShoppingBtn();
 
-      // Step 5: Click 'Cart' button
-      await homePage.header.clickCartLink();
+        // Step 5: Click 'Cart' button
+        await homePage.header.clickCartLink();
 
-      // Step 6: Verify that cart page is displayed
-      await expect(page).toHaveURL(cartPage.path);
-    });
+        // Step 6: Verify that cart page is displayed
+        await expect(page).toHaveURL(cartPage.path);
+
+        return summary;
+      },
+    );
 
     await test.step("Steps 7: Click Proceed To Checkout and verify checkout modal", async () => {
       // Step 7: Click Proceed To Checkout
@@ -223,6 +228,16 @@ test(
       await verifyAddressMatchesRegistrationData(
         await checkoutPage.getBillingAddress(),
         registrationData,
+      );
+
+      expect(await checkoutPage.orderTable.getLineCount()).toBe(1);
+      const orderLine = await checkoutPage.orderTable.getLine(0);
+      expect(await orderLine.getName()).toBe(addedProduct.name);
+      expect(await orderLine.getPrice()).toBe(addedProduct.price);
+      expect(await orderLine.getQuantity()).toBe("1");
+      expect(await orderLine.getTotalPrice()).toBe(addedProduct.price);
+      expect(await checkoutPage.orderTable.getTotalAmount()).toBe(
+        addedProduct.price,
       );
     });
   },

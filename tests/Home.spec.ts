@@ -44,13 +44,20 @@ test(
       await navigateToHomeAndVerify(page, homePage);
     });
 
-    await test.step("Steps 4-5: Click 'View Product' for any product on home page and Verify product detail is opened", async () => {
-      // Step 4: Click on 'Products' button
-      await (await homePage.productList.getProductCard(0)).clickViewProduct();
+    const selectedProduct = await test.step(
+      "Steps 4-5: Click 'View Product' for any product on home page and Verify product detail is opened",
+      async () => {
+        // Step 4: Click on 'Products' button
+        const productCard = await homePage.productList.getProductCard(0);
+        const summary = await productCard.getSummary();
+        await productCard.clickViewProduct();
 
-      // Step 5: Verify product detail is opened
-      await expect(page).toHaveURL(productDetailsPage.path);
-    });
+        // Step 5: Verify product detail is opened
+        await expect(page).toHaveURL(productDetailsPage.path);
+
+        return summary;
+      },
+    );
 
     await test.step("Steps 6-8: Increase quantity to 4, Click 'Add to cart' button and Verify Added! pop-up and Click Click 'View Cart' button", async () => {
       // Step 6: Increase quantity to 4
@@ -68,15 +75,17 @@ test(
 
     await test.step("Steps 9: Verify that product is displayed in cart page with exact quantity.", async () => {
       // Step 9: Verify that product is displayed in cart page with exact quantity
-      expect(await cartPage.getCartListCount()).toBe(1);
+      expect(await cartPage.orderTable.getLineCount()).toBe(1);
 
       // Step 9: Verify both products are added to Cart
       // Step 10: Verify their prices, quantity and total price
-      const cart1 = await cartPage.getCartLine(0);
-      expect(await cart1.getName()).toBe("Blue Top");
-      expect(await cart1.getPrice()).toBe("Rs. 500");
+      const cart1 = await cartPage.orderTable.getLine(0);
+      expect(await cart1.getName()).toBe(selectedProduct.name);
+      expect(await cart1.getPrice()).toBe(selectedProduct.price);
       expect(await cart1.getQuantity()).toBe("4");
-      expect(await cart1.getTotalPrice()).toBe("Rs. 2000");
+
+      const unitPrice = Number(selectedProduct.price.replace(/\D/g, ""));
+      expect(await cart1.getTotalPrice()).toBe(`Rs. ${unitPrice * 4}`);
     });
   },
 );
