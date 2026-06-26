@@ -38,7 +38,9 @@ export class ProductDetailsPage extends BasePage {
       .locator("span > span")
       .first()
       .innerText();
-    const productName = await productDetails.locator("h2").innerText();
+    const productName = await productDetails
+      .getByRole("heading", { level: 2 })
+      .innerText();
     const category = await productDetails
       .locator("p", { hasText: "Category:" })
       .innerText();

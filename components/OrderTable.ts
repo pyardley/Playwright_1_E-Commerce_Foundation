@@ -5,7 +5,10 @@ class OrderLine {
 
   async getName() {
     return (
-      await this.lineLocator.locator(".cart_description h4 a").innerText()
+      await this.lineLocator
+        .locator(".cart_description")
+        .getByRole("link")
+        .innerText()
     ).trim();
   }
 
@@ -15,7 +18,10 @@ class OrderLine {
 
   async getQuantity() {
     return (
-      await this.lineLocator.locator(".cart_quantity button").innerText()
+      await this.lineLocator
+        .locator(".cart_quantity")
+        .getByRole("button")
+        .innerText()
     ).trim();
   }
 

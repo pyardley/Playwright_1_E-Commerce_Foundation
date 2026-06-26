@@ -39,7 +39,7 @@ export class ProductsPage extends BasePage {
     await (await this.getSearchButton()).click();
   }
 
-  async searchForProductInput(search: string) {
+  async searchForProduct(search: string) {
     await this.setSearchInput(search);
     await this.clickSearchButton();
   }

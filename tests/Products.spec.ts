@@ -78,7 +78,7 @@ test(
 
     await test.step("Steps 6-7: Enter product name in search input and click search button. Verify 'SEARCHED PRODUCTS' is visible. Verify all the products related to search are visible.", async () => {
       // Step 6: Enter product name in search input and click search button
-      await productsPage.searchForProductInput("sleeves");
+      await productsPage.searchForProduct("sleeves");
 
       // Step 7: Verify 'SEARCHED PRODUCTS' is visible
       await expect(page).toHaveURL("/products?search=sleeves");

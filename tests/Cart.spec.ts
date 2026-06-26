@@ -3,7 +3,7 @@ import { navigateToHomeAndVerify } from "@support/steps";
 
 // Test Case 11: Verify Subscription in Cart page
 test(
-  "Verify Subscription in home page",
+  "Verify Subscription in Cart page",
   { tag: ["@smoke", "@e2e"] },
   async ({ page, homePage, cartPage }) => {
     // Step 1: Launch browser
