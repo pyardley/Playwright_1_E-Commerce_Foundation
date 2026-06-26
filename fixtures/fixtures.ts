@@ -9,6 +9,7 @@ import { TestCasesPage } from "@pages/TestCasesPage";
 import { ProductsPage } from "@pages/ProductsPage";
 import { ProductDetailsPage } from "@pages/ProductDetailsPage";
 import { CartPage } from "@pages/CartPage";
+import { CheckoutPage } from "@pages/CheckoutPage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
 
@@ -81,6 +82,7 @@ type Fixtures = {
   productsPage: ProductsPage;
   productDetailsPage: ProductDetailsPage;
   cartPage: CartPage;
+  checkoutPage: CheckoutPage;
   testUser: TestUser;
   registrationData: RegistrationData;
   blockAdDomains: void;
@@ -99,13 +101,17 @@ export const test = base.extend<Fixtures>({
   homePage: async ({ page }, use) => use(new HomePage(page)),
   loginPage: async ({ page }, use) => use(new LoginPage(page)),
   signupPage: async ({ page }, use) => use(new SignupPage(page)),
-  accountCreatedPage: async ({ page }, use) => use(new AccountCreatedPage(page)),
-  accountDeletedPage: async ({ page }, use) => use(new AccountDeletedPage(page)),
+  accountCreatedPage: async ({ page }, use) =>
+    use(new AccountCreatedPage(page)),
+  accountDeletedPage: async ({ page }, use) =>
+    use(new AccountDeletedPage(page)),
   contactUsPage: async ({ page }, use) => use(new ContactUsPage(page)),
   testCasesPage: async ({ page }, use) => use(new TestCasesPage(page)),
   productsPage: async ({ page }, use) => use(new ProductsPage(page)),
   cartPage: async ({ page }, use) => use(new CartPage(page)),
-  productDetailsPage: async ({ page }, use) => use(new ProductDetailsPage(page)),
+  checkoutPage: async ({ page }, use) => use(new CheckoutPage(page)),
+  productDetailsPage: async ({ page }, use) =>
+    use(new ProductDetailsPage(page)),
   testUser: async ({ request }, use) => {
     const user: TestUser = buildRegistrationData();
 

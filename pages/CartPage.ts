@@ -29,6 +29,32 @@ class CartLine {
   }
 }
 
+export class CheckoutModal {
+  constructor(private readonly modalLocator: Locator) {}
+
+  async getHeading() {
+    return this.modalLocator.getByRole("heading", { name: "Checkout" });
+  }
+
+  async getRegisterLoginLink() {
+    return this.modalLocator
+      .getByRole("link", { name: "Register / Login" })
+      .locator("u");
+  }
+
+  async clickRegisterLoginLink() {
+    await (await this.getRegisterLoginLink()).click();
+  }
+
+  async getContinueOnCartBtn() {
+    return this.modalLocator.getByRole("button", { name: "Continue On Cart" });
+  }
+
+  async clickContinueOnCartBtn() {
+    await (await this.getContinueOnCartBtn()).click();
+  }
+}
+
 export class CartPage extends BasePage {
   readonly path = "/view_cart";
   readonly header: Header;
@@ -59,5 +85,19 @@ export class CartPage extends BasePage {
   async getCartLine(index: number) {
     const cardLocator = (await this.getCartListItemLocators()).nth(index);
     return new CartLine(cardLocator);
+  }
+
+  // No getByRole("link"/"button") match here: the markup is an <a> with no
+  // href, which has no implicit ARIA role at all.
+  async getProceedToCheckoutBtn() {
+    return this.page.getByText("Proceed To Checkout", { exact: true });
+  }
+
+  async clickProceedToCheckoutBtn() {
+    await (await this.getProceedToCheckoutBtn()).click();
+  }
+
+  async getCheckoutModal() {
+    return new CheckoutModal(this.page.locator("#checkoutModal .modal-content"));
   }
 }

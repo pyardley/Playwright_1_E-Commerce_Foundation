@@ -66,7 +66,7 @@ test(
       await productDetailsPage.addedToCartModal.clickViewCartLink();
     });
 
-    await test.step("Step 9: Verify that product is displayed in cart page with exact quantity", async () => {
+    await test.step("Steps 9: Verify that product is displayed in cart page with exact quantity.", async () => {
       // Step 9: Verify that product is displayed in cart page with exact quantity
       expect(await cartPage.getCartListCount()).toBe(1);
 
