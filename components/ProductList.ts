@@ -78,7 +78,7 @@ export class ProductList {
   // Not exact: the site occasionally wraps a heading word (e.g. "Dress") in
   // injected ad/annotation markup that adds extra whitespace around it,
   // which would break an exact accessible-name match.
-  async getProductFilter(cat: string, subcat: string) {
+  async getCategoryProductsHeading(cat: string, subcat: string) {
     return (await this.getContainer()).getByRole("heading", {
       name: `${cat.toUpperCase()} - ${subcat} PRODUCTS`,
     });
