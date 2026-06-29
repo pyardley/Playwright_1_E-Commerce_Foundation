@@ -117,23 +117,23 @@ export async function fillSignupFormAndCreateAccount(
 
 export async function verifyAddressMatchesRegistrationData(
   addr: AddressDetails,
-  registrationData: RegistrationData,
+  userData: RegistrationData | TestUser,
 ) {
   // The site renders the title with a trailing period ("Mr."/"Mrs."),
-  // but registrationData.title stores it without one (it's matched
-  // against radio button accessible names elsewhere as "Mr."/"Mrs." too,
-  // just not stored that way).
+  // but userData.title stores it without one (it's matched against
+  // radio button accessible names elsewhere as "Mr."/"Mrs." too, just
+  // not stored that way).
   expect(await addr.getFullName()).toBe(
-    `${registrationData.title}. ${registrationData.firstname} ${registrationData.lastname}`,
+    `${userData.title}. ${userData.firstname} ${userData.lastname}`,
   );
-  expect(await addr.getAddressLine(0)).toBe(registrationData.company);
-  expect(await addr.getAddressLine(1)).toBe(registrationData.address1);
-  expect(await addr.getAddressLine(2)).toBe(registrationData.address2);
+  expect(await addr.getAddressLine(0)).toBe(userData.company);
+  expect(await addr.getAddressLine(1)).toBe(userData.address1);
+  expect(await addr.getAddressLine(2)).toBe(userData.address2);
   expect(await addr.getCityStateZip()).toBe(
-    `${registrationData.city} ${registrationData.state} ${registrationData.zipcode}`,
+    `${userData.city} ${userData.state} ${userData.zipcode}`,
   );
-  expect(await addr.getCountry()).toBe(registrationData.country);
-  expect(await addr.getPhoneNumber()).toBe(registrationData.mobileNumber);
+  expect(await addr.getCountry()).toBe(userData.country);
+  expect(await addr.getPhoneNumber()).toBe(userData.mobileNumber);
 }
 
 export async function verifyOrderLineMatchesProduct(
