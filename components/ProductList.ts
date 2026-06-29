@@ -66,14 +66,21 @@ export class ProductList {
 
   async getAllDisplayedProductNames(): Promise<string[]> {
     // Isolate the paragraph tags directly inside the static info elements
-    const nameLocators = (await this.getContainer()).locator(
-      ".productinfo p",
-    );
+    const nameLocators = (await this.getContainer()).locator(".productinfo p");
 
     // Directly extract all text strings into an array
     const rawNames = await nameLocators.allInnerTexts();
 
     // Map through the array to clean up whitespace
     return rawNames.map((name) => name.trim());
+  }
+
+  // Not exact: the site occasionally wraps a heading word (e.g. "Dress") in
+  // injected ad/annotation markup that adds extra whitespace around it,
+  // which would break an exact accessible-name match.
+  async getProductFilter(cat: string, subcat: string) {
+    return (await this.getContainer()).getByRole("heading", {
+      name: `${cat.toUpperCase()} - ${subcat} PRODUCTS`,
+    });
   }
 }

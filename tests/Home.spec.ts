@@ -89,3 +89,61 @@ test(
     });
   },
 );
+
+// Test Case 18: View Category Products
+test(
+  "View Category Products",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Step 2: Navigate to url", async () => {
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Step 3: Verify that categories are visible on left side bar", async () => {
+      await expect(
+        await homePage.leftSidebar.getCategoryHeading(),
+      ).toBeVisible();
+    });
+
+    await test.step("Steps 4-5: Click on 'Women' category. Click on any category link under 'Women' category, for example: Dress", async () => {
+      const womenCatObj = await homePage.leftSidebar.getCategory("Women");
+      await womenCatObj.expandCategory();
+
+      await womenCatObj.clickSubCategory("Dress");
+    });
+
+    await test.step("Step 6: Verify that category page is displayed and confirm text 'WOMEN - DRESS PRODUCTS'", async () => {
+      const allProducts =
+        await homePage.productList.getAllDisplayedProductNames();
+      for (const productName of allProducts) {
+        expect(productName.toLowerCase()).toContain("dress");
+      }
+
+      await expect(
+        await homePage.productList.getProductFilter("Women", "Dress"),
+      ).toBeVisible();
+    });
+
+    await test.step("Step 7: On left side bar, click on any sub-category link of 'Men' category", async () => {
+      const menCatObj = await homePage.leftSidebar.getCategory("Men");
+      await menCatObj.expandCategory();
+
+      await menCatObj.clickSubCategory("Jeans");
+
+      await expect(
+        await homePage.productList.getProductFilter("Men", "Jeans"),
+      ).toBeVisible();
+    });
+
+    await test.step("Step 8: Verify that user is navigated to that category page'", async () => {
+      const allProducts =
+        await homePage.productList.getAllDisplayedProductNames();
+      for (const productName of allProducts) {
+        expect(productName.toLowerCase()).toContain("jeans");
+      }
+    });
+  },
+);
