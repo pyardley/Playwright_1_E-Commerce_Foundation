@@ -30,6 +30,22 @@ class OrderLine {
       await this.lineLocator.locator(".cart_total_price").innerText()
     ).trim();
   }
+
+  async getDeleteButton() {
+    return await this.lineLocator.locator(".cart_quantity_delete");
+  }
+
+  async clickDeleteButton() {
+    (await this.getDeleteButton()).click();
+  }
+
+  // Rows are identified by this id ("product-<id>") rather than by their
+  // position, since nth() re-evaluates against the live DOM: after a row is
+  // removed, the same nth(index) locator resolves to whichever row now
+  // occupies that position, not the original element.
+  async getRowId(): Promise<string> {
+    return (await this.lineLocator.getAttribute("id"))!;
+  }
 }
 
 // Shared by CartPage and CheckoutPage: both render an identical #cart_info
@@ -55,6 +71,10 @@ export class OrderTable {
   async getLine(index: number) {
     const lineLocator = (await this.getLineLocators()).nth(index);
     return new OrderLine(lineLocator);
+  }
+
+  async getLineLocatorById(rowId: string) {
+    return (await this.getContainer()).locator(`#${rowId}`);
   }
 
   async getTotalAmount() {
