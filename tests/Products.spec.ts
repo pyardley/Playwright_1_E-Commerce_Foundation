@@ -172,3 +172,58 @@ test(
     });
   },
 );
+
+// Test Case 19: View & Cart Brand Products
+test(
+  "View & Cart Brand Products",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage, productsPage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url. Click on 'Products' button", async () => {
+      // Step 2: Navigate to url
+      await navigateToHomeAndVerify(page, homePage);
+
+      // Step 3: Click on 'Products' button
+      await homePage.header.clickProductsLink();
+      await expect(page).toHaveURL(productsPage.path);
+      await expect(await productsPage.getAllProductsHeading()).toBeVisible();
+    });
+
+    await test.step("Step 4: Verify that Brands are visible on left side bar", async () => {
+      await expect(
+        await productsPage.leftSidebar.getBrandHeading(),
+      ).toBeVisible();
+    });
+
+    await test.step("Steps 5-6: Click on any brand name. Verify that user is navigated to brand page and brand products are displayed", async () => {
+      // Step 5: Click on any brand name
+      const expCount = await productsPage.leftSidebar.getBrandCount("Madame");
+      await (await productsPage.leftSidebar.getBrand("Madame")).click();
+
+      // Step 6: Verify that user is navigated to brand page and brand products are displayed
+      await expect(
+        await productsPage.productList.getBrandProductsHeading("Madame"),
+      ).toBeVisible();
+
+      const actCount = await productsPage.productList.getProductCount();
+      expect(actCount).toBe(expCount);
+    });
+
+    await test.step("Steps 7-8: On left side bar, click on any other brand link. Verify that user is navigated to that brand page and can see products", async () => {
+      // Step 7: On left side bar, click on any other brand link
+      const expCount =
+        await productsPage.leftSidebar.getBrandCount("Babyhug");
+      await (await productsPage.leftSidebar.getBrand("Babyhug")).click();
+
+      // Step 8: Verify that user is navigated to that brand page and can see products
+      await expect(
+        await productsPage.productList.getBrandProductsHeading("Babyhug"),
+      ).toBeVisible();
+
+      const actCount = await productsPage.productList.getProductCount();
+      expect(actCount).toBe(expCount);
+    });
+  },
+);

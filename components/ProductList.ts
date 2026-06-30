@@ -83,4 +83,10 @@ export class ProductList {
       name: `${cat.toUpperCase()} - ${subcat} PRODUCTS`,
     });
   }
+
+  async getBrandProductsHeading(brand: string) {
+    return (await this.getContainer()).getByRole("heading", {
+      name: `Brand - ${brand} Products`,
+    });
+  }
 }

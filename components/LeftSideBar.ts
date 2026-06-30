@@ -38,7 +38,9 @@ export class LeftSidebar {
   }
 
   async getCategoryHeading() {
-    return await this.page.getByRole("heading", { name: "Category" });
+    return (await this.getSideBar()).getByRole("heading", {
+      name: "Category",
+    });
   }
 
   async getCategoriesContainer() {
@@ -58,5 +60,28 @@ export class LeftSidebar {
       `#${catName}`,
     );
     return new Category(catLocator, subCatLocator);
+  }
+
+  async getBrandHeading() {
+    return (await this.getSideBar()).getByRole("heading", { name: "Brands" });
+  }
+
+  async getBrandsContainer() {
+    return (await this.getSideBar()).locator(".brands-name");
+  }
+
+  async getBrand(brandName: string) {
+    return (await this.getBrandsContainer()).getByRole("link", {
+      name: `${brandName}`,
+    });
+  }
+
+  async getBrandCount(brandName: string) {
+    const brandNumLoc = (await this.getBrandsContainer())
+      .getByRole("link", { name: brandName })
+      .locator("span.pull-right");
+    const brandNumber = (await brandNumLoc.innerText()).trim();
+    const match = brandNumber.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   }
 }

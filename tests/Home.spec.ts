@@ -117,10 +117,7 @@ test(
 
     await test.step("Step 6: Verify that category page is displayed and confirm text 'WOMEN - DRESS PRODUCTS'", async () => {
       await expect(
-        await homePage.productList.getCategoryProductsHeading(
-          "Women",
-          "Dress",
-        ),
+        await homePage.productList.getCategoryProductsHeading("Women", "Dress"),
       ).toBeVisible();
 
       const allProducts =
@@ -137,10 +134,7 @@ test(
       await menCatObj.clickSubCategory("Jeans");
 
       await expect(
-        await homePage.productList.getCategoryProductsHeading(
-          "Men",
-          "Jeans",
-        ),
+        await homePage.productList.getCategoryProductsHeading("Men", "Jeans"),
       ).toBeVisible();
     });
 
