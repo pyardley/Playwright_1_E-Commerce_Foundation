@@ -2,6 +2,7 @@ import { Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
 import { ProductList } from "@components/ProductList";
 import { LeftSidebar } from "@components/LeftSideBar";
+import { Header } from "@components/Header";
 import { AddedToCartModal } from "@components/AddedToCartModal";
 
 export class ProductsPage extends BasePage {
@@ -9,12 +10,14 @@ export class ProductsPage extends BasePage {
   readonly productList: ProductList;
   readonly addedToCartModal: AddedToCartModal;
   readonly leftSidebar: LeftSidebar;
+  readonly header: Header;
 
   constructor(page: Page) {
     super(page);
     this.productList = new ProductList(page);
     this.addedToCartModal = new AddedToCartModal(page);
     this.leftSidebar = new LeftSidebar(page);
+    this.header = new Header(page);
   }
 
   async getAllProductsHeading() {

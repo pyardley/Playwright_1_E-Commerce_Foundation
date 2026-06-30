@@ -56,7 +56,7 @@ export class ProductList {
   }
 
   async getProductCount() {
-    return (await this.getProductCardLocators()).count();
+    return (await this.getContainer()).locator(".col-sm-4").count();
   }
 
   async getProductCard(index: number) {

@@ -23,8 +23,8 @@ export async function navigateToHomeAndVerify(page: Page, homePage: HomePage) {
   await expect(homeLink).toHaveCSS("color", "rgb(255, 165, 0)");
 }
 
-export async function clickSignupLoginLink(page: Page, homePage: HomePage) {
-  await homePage.header.clickLoginLink();
+export async function clickSignupLoginLink(page: Page, header: Header) {
+  await header.clickLoginLink();
   await expect(page).toHaveURL("/login");
 }
 

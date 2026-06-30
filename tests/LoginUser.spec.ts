@@ -25,7 +25,7 @@ test(
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(
         await loginPage.getLoginToYourAccountHeading(),
       ).toBeVisible();
@@ -65,7 +65,7 @@ test(
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(
         await loginPage.getLoginToYourAccountHeading(),
       ).toBeVisible();
@@ -103,7 +103,7 @@ test(
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'Login to your account' is visible", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(
         await loginPage.getLoginToYourAccountHeading(),
       ).toBeVisible();
@@ -154,7 +154,7 @@ test(
 
     // Step 4: Click 'Signup / Login' button
     await test.step("Steps 4: Click 'Signup / Login' button", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(
         await loginPage.getLoginToYourAccountHeading(),
       ).toBeVisible();

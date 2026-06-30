@@ -1,6 +1,9 @@
 import { test, expect } from "@fixtures/fixtures";
+import { CartPage } from "@pages/CartPage";
 import { navigateToHomeAndVerify } from "@support/steps";
 import { navigateToProductsAndVerify } from "@support/steps";
+import { clickSignupLoginLink } from "@support/steps";
+import { loginAsTestUserAndVerifyLoggedIn } from "@support/steps";
 
 // Test Case 8: Verify All Products and product detail page
 test(
@@ -213,8 +216,7 @@ test(
 
     await test.step("Steps 7-8: On left side bar, click on any other brand link. Verify that user is navigated to that brand page and can see products", async () => {
       // Step 7: On left side bar, click on any other brand link
-      const expCount =
-        await productsPage.leftSidebar.getBrandCount("Babyhug");
+      const expCount = await productsPage.leftSidebar.getBrandCount("Babyhug");
       await (await productsPage.leftSidebar.getBrand("Babyhug")).click();
 
       // Step 8: Verify that user is navigated to that brand page and can see products
@@ -224,6 +226,112 @@ test(
 
       const actCount = await productsPage.productList.getProductCount();
       expect(actCount).toBe(expCount);
+    });
+  },
+);
+
+// Test Case 20: Search Products and Verify Cart After Login
+test(
+  "Search Products and Verify Cart After Login",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage, productsPage, cartPage, loginPage, testUser }) => {
+    // Adds each search result to the cart individually (with a real wait
+    // for the "Added!" modal to open and close per item), then runs a full
+    // login flow - comfortably exceeds the 30s default on a slower run.
+    test.setTimeout(60_000);
+
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-4: Navigate to url. Click on 'Products' button. Verify user is navigated to ALL PRODUCTS page successfully", async () => {
+      // Step 2: Navigate to url
+      await navigateToHomeAndVerify(page, homePage);
+
+      // Step 3: Click on 'Products' button
+      await homePage.header.clickProductsLink();
+      await expect(page).toHaveURL(productsPage.path);
+
+      // Step 4: Verify user is navigated to ALL PRODUCTS page successfully
+      await expect(await productsPage.getAllProductsHeading()).toBeVisible();
+    });
+
+    await test.step("Steps 5-6: Enter product name in search input and click search button. Verify 'SEARCHED PRODUCTS' is visible", async () => {
+      // Step 5: Enter product name in search input and click search button
+      await productsPage.setSearchInput("blue");
+      await productsPage.clickSearchButton();
+
+      // Step 6: Verify 'SEARCHED PRODUCTS' is visible
+      await expect(await productsPage.getSearchedProductsHeader()).toBeVisible({
+        timeout: 10000,
+      });
+    });
+
+    const allProducts =
+      await test.step("Steps 7-9: Verify all the products related to search are visible. Add those products to cart. Click 'Cart' button and verify that products are visible in cart.", async () => {
+        // Step 7: Verify all the products related to search are visible
+        const allProducts =
+          await productsPage.productList.getAllDisplayedProductNames();
+        for (const productName of allProducts) {
+          expect(productName.toLowerCase()).toContain("blue");
+        }
+
+        // Step 8: Add those products to cart
+        const prodCount = await productsPage.productList.getProductCount();
+
+        for (let i = 0; i < prodCount; i++) {
+          const prodCard = await productsPage.productList.getProductCard(i);
+          await prodCard.hoverAndClickAddToCart();
+          const modal = await productsPage.addedToCartModal.getModal();
+          await expect(modal).toBeVisible();
+          await productsPage.addedToCartModal.clickContinueShoppingBtn();
+          // Wait out the modal's close animation before hovering the next
+          // card - otherwise the still-fading overlay can intercept the
+          // next hover/click, which surfaced as intermittent webkit
+          // failures partway through this loop.
+          await expect(modal).toBeHidden();
+        }
+
+        // Step 9: Click 'Cart' button and verify that products are visible in cart
+        await productsPage.header.clickCartLink();
+        await expect(page).toHaveURL(cartPage.path);
+
+        const cartCount = await cartPage.orderTable.getLineCount();
+
+        expect(prodCount).toBe(cartCount);
+
+        for (let i = 0; i < cartCount; i++) {
+          const cartLine = await cartPage.orderTable.getLine(i);
+          expect(await cartLine.getName()).toBe(allProducts[i]);
+        }
+
+        return allProducts;
+      });
+
+    await test.step("Steps 10-12: Click 'Signup / Login' button and submit login details. Again, go to Cart page. Verify that those products are visible in cart after login as well", async () => {
+      // Step 10: Click 'Signup / Login' button and submit login details
+      await clickSignupLoginLink(page, cartPage.header);
+      await expect(
+        await loginPage.getLoginToYourAccountHeading(),
+      ).toBeVisible();
+
+      await loginAsTestUserAndVerifyLoggedIn(
+        page,
+        loginPage,
+        homePage,
+        testUser,
+      );
+
+      // Step 11: Again, go to Cart page
+      await homePage.header.clickCartLink();
+      await expect(page).toHaveURL(cartPage.path);
+
+      // Step 12: Verify that those products are visible in cart after login as well
+      const cartCount = await cartPage.orderTable.getLineCount();
+
+      for (let i = 0; i < cartCount; i++) {
+        const cartLine = await cartPage.orderTable.getLine(i);
+        expect(await cartLine.getName()).toBe(allProducts[i]);
+      }
     });
   },
 );

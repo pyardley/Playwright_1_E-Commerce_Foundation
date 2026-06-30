@@ -32,7 +32,7 @@ test(
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'New User Signup!' is visible", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(await loginPage.getNewUserSignUpHeading()).toBeVisible();
     });
 
@@ -109,7 +109,7 @@ test(
     });
 
     await test.step("Steps 4-5: Click 'Signup / Login' button and verify 'New User Signup!' is visible", async () => {
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(await loginPage.getNewUserSignUpHeading()).toBeVisible();
     });
 
@@ -297,7 +297,7 @@ test(
 
     await test.step("Steps 4-6: Click 'Signup / Login' button. Fill all details in Signup and create account. Verify 'ACCOUNT CREATED!' and click 'Continue' button", async () => {
       // Step 4: Click 'Signup / Login' button
-      await clickSignupLoginLink(page, homePage);
+      await clickSignupLoginLink(page, homePage.header);
       await expect(await loginPage.getNewUserSignUpHeading()).toBeVisible();
 
       // Steps 5: Fill all details in Signup and create account

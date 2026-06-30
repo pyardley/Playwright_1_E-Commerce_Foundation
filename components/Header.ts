@@ -4,6 +4,10 @@ import { dismissCookieConsent } from "./dismissCookieConsent";
 export class Header {
   constructor(private readonly page: Page) {}
 
+  async getNavBar() {
+    return this.page.locator(".shop-menu");
+  }
+
   async getHomeLink() {
     return this.page.getByRole("link", { name: "Home" });
   }
@@ -19,7 +23,7 @@ export class Header {
   }
 
   async getCartLink() {
-    return this.page.getByRole("link", { name: "Cart" });
+    return (await this.getNavBar()).getByRole("link", { name: "Cart" });
   }
 
   async clickCartLink() {
