@@ -9,7 +9,7 @@ import type { ProductsPage } from "@pages/ProductsPage";
 import type { SignupPage } from "@pages/SignupPage";
 import type { AddressDetails } from "@pages/CheckoutPage";
 import type { OrderTable } from "@components/OrderTable";
-import type { ProductSummary } from "@components/ProductList";
+import type { ProductSummary } from "@components/ProductCard";
 import type { PaymentPage } from "@pages/PaymentPage";
 import type { PaymentDonePage } from "@pages/PaymentDonePage";
 import type { TestUser } from "@fixtures/fixtures";

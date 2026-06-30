@@ -335,3 +335,52 @@ test(
     });
   },
 );
+
+// Test Case 21: Add review on product
+test(
+  "Add review on product",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage, productsPage, productDetailsPage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-4: Navigate to url. Click on 'Products' button. Verify user is navigated to ALL PRODUCTS page successfully", async () => {
+      // Step 2: Navigate to url
+      await navigateToHomeAndVerify(page, homePage);
+
+      // Step 3: Click on 'Products' button
+      await homePage.header.clickProductsLink();
+      await expect(page).toHaveURL(productsPage.path);
+
+      // Step 4: Verify user is navigated to ALL PRODUCTS page successfully
+      await expect(await productsPage.getAllProductsHeading()).toBeVisible();
+    });
+
+    await test.step("Steps 5-6: Click on 'View Product' button. Verify 'Write Your Review' is visible", async () => {
+      // Step 5: Click on 'View Product' button
+      const prodCard = await productsPage.productList.getProductCard(1);
+      await prodCard.clickViewProduct();
+      await expect(page).toHaveURL(productDetailsPage.path);
+
+      // Step 6: Verify 'Write Your Review' is visible
+      await expect(
+        await productDetailsPage.getWriteYourReviewHeader(),
+      ).toBeVisible();
+    });
+
+    await test.step("Steps 7-9: Enter name, email and review. Click 'Submit' button. Verify success message 'Thank you for your review.'", async () => {
+      // Step 7: Enter name, email and review
+      await productDetailsPage.setYourNameInput("Test Name");
+      await productDetailsPage.setEmailAddressInput("test@test.com");
+      await productDetailsPage.setReviewInput("Very good");
+
+      //Step 8: Click 'Submit' button
+      await productDetailsPage.clickSubmitButton();
+
+      // Step 9: Verify success message 'Thank you for your review.'
+      await expect(
+        await productDetailsPage.getReviewResponseMessage(),
+      ).toBeVisible();
+    });
+  },
+);

@@ -147,3 +147,42 @@ test(
     });
   },
 );
+
+// Test Case 22: Add to cart from Recommended items
+test(
+  "Add to cart from Recommended items",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage, cartPage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Step 2: Navigate to url", async () => {
+      // Step 2: Navigate to url 'http://automationexercise.com'
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Steps 3-4: Scroll to bottom of page. Verify 'RECOMMENDED ITEMS' are visible", async () => {
+      // Step 3: Scroll to bottom of page
+      await (await homePage.getRecommendedItemsHeader()).scrollIntoViewIfNeeded();
+      // Step 4: Verify 'RECOMMENDED ITEMS' are visible
+      await expect(await homePage.getRecommendedItemsHeader()).toBeVisible();
+    });
+
+    await test.step("Steps 5: Click on 'Add To Cart' on Recommended product. Click on 'View Cart' button. Verify that product is displayed in cart page", async () => {
+      // Step 5: Click on 'Add To Cart' on Recommended product
+      const productCard = await homePage.recommendedItemsList.getProductCard(1);
+      const productName = await productCard.getName();
+      await productCard.clickAddToCartLink();
+
+      const addedToCartModal = homePage.addedToCartModal;
+      await expect(await addedToCartModal.getHeader()).toBeVisible();
+
+      // Step 6: Click on 'View Cart' button
+      await addedToCartModal.clickViewCartLink();
+
+      // Step 7: Verify that product is displayed in cart page
+      const orderLine = await cartPage.orderTable.getLine(0);
+      expect(await orderLine.getName()).toBe(productName);
+    });
+  },
+);

@@ -81,4 +81,53 @@ export class ProductDetailsPage extends BasePage {
   async setQuantityInput(quantity: string) {
     await (await this.getQuantityInput()).fill(quantity);
   }
+
+  async getWriteYourReviewHeader() {
+    return this.page.getByRole("link", { name: "Write Your Review" });
+  }
+
+  async getReviewForm() {
+    return this.page.locator("#review-form");
+  }
+
+  async getYourNameInput() {
+    const reviewForm = await this.getReviewForm();
+    return reviewForm.getByPlaceholder("Your Name");
+  }
+
+  async setYourNameInput(name: string) {
+    await (await this.getYourNameInput()).fill(name);
+  }
+
+  async getEmailAddressInput() {
+    const reviewForm = await this.getReviewForm();
+    return reviewForm.getByPlaceholder("Email Address");
+  }
+
+  async setEmailAddressInput(email: string) {
+    await (await this.getEmailAddressInput()).fill(email);
+  }
+
+  async getReviewInput() {
+    const reviewForm = await this.getReviewForm();
+    return reviewForm.getByPlaceholder("Add Review Here!");
+  }
+
+  async setReviewInput(review: string) {
+    await (await this.getReviewInput()).fill(review);
+  }
+
+  async getSubmitButton() {
+    return this.page.getByRole("button", { name: "Submit" });
+  }
+
+  async clickSubmitButton() {
+    await (await this.getSubmitButton()).click();
+  }
+
+  async getReviewResponseMessage() {
+    return this.page
+      .locator("#review-section:not(.hide)")
+      .getByText("Thank you for your review.");
+  }
 }

@@ -12,6 +12,7 @@ export class HomePage extends BasePage {
   readonly footer: Footer;
   readonly leftSidebar: LeftSidebar;
   readonly productList: ProductList;
+  readonly recommendedItemsList: ProductList;
   readonly addedToCartModal: AddedToCartModal;
 
   constructor(page: Page) {
@@ -20,6 +21,16 @@ export class HomePage extends BasePage {
     this.footer = new Footer(page);
     this.leftSidebar = new LeftSidebar(page);
     this.productList = new ProductList(page);
+    this.recommendedItemsList = new ProductList(
+      page,
+      "#recommended-item-carousel",
+    );
     this.addedToCartModal = new AddedToCartModal(page);
+  }
+
+  async getRecommendedItemsHeader() {
+    return this.page.getByRole("heading", {
+      name: "recommended items",
+    });
   }
 }
