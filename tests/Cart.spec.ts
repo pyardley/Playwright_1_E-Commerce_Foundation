@@ -68,7 +68,7 @@ test(
     });
 
     await test.step("Steps 5-6: Click 'Cart' button and Verify that cart page is displayed", async () => {
-      // Step 4: Click 'Cart' button
+      // Step 5: Click 'Cart' button
       await homePage.header.clickCartLink();
       await expect(page).toHaveURL(cartPage.path);
       await expect(await cartPage.getShoppingCartHeader()).toBeVisible();

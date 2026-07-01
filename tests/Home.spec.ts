@@ -37,7 +37,7 @@ test(
 
 // Test Case 13: Verify Product quantity in Cart
 test(
-  "Add Products in Cart",
+  "Verify Product quantity in Cart",
   { tag: ["@smoke", "@e2e"] },
   async ({ page, homePage, productDetailsPage, cartPage }) => {
     // Step 1: Launch browser
@@ -49,7 +49,7 @@ test(
 
     const selectedProduct =
       await test.step("Steps 4-5: Click 'View Product' for any product on home page and Verify product detail is opened", async () => {
-        // Step 4: Click on 'Products' button
+        // Step 4: Click 'View Product' for any product on home page
         const productCard = await homePage.productList.getProductCard(0);
         const summary = await productCard.getSummary();
         await productCard.clickViewProduct();
@@ -60,7 +60,7 @@ test(
         return summary;
       });
 
-    await test.step("Steps 6-8: Increase quantity to 4, Click 'Add to cart' button and Verify Added! pop-up and Click Click 'View Cart' button", async () => {
+    await test.step("Steps 6-8: Increase quantity to 4, Click 'Add to cart' button and Click 'View Cart' button", async () => {
       // Step 6: Increase quantity to 4
       await productDetailsPage.setQuantityInput("4");
 
@@ -77,9 +77,6 @@ test(
     await test.step("Steps 9: Verify that product is displayed in cart page with exact quantity.", async () => {
       // Step 9: Verify that product is displayed in cart page with exact quantity
       expect(await cartPage.orderTable.getLineCount()).toBe(1);
-
-      // Step 9: Verify both products are added to Cart
-      // Step 10: Verify their prices, quantity and total price
       await verifyOrderLineMatchesProduct(
         cartPage.orderTable,
         0,
@@ -223,7 +220,7 @@ test(
   },
 );
 
-// Test Case 26: Verify Scroll Up using 'Arrow' button and Scroll Down functionality
+// Test Case 26: Verify Scroll Up without 'Arrow' button and Scroll Down functionality
 test(
   "Verify Scroll Up without 'Arrow' button and Scroll Down functionality",
   { tag: ["@smoke", "@e2e"] },
@@ -247,8 +244,8 @@ test(
       ).toBeInViewport();
     });
 
-    await test.step("Steps 6-7: Click on arrow at bottom right side to move upward. Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible on screen", async () => {
-      // Step 6: Click on arrow at bottom right side to move upward
+    await test.step("Steps 6-7: Scroll up page to top. Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible on screen", async () => {
+      // Step 6: Scroll up page to top
       await homePage.scrollToTop();
 
       // Step 7: Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible
