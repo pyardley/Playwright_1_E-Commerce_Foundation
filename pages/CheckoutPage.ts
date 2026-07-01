@@ -41,7 +41,7 @@ export class AddressDetails {
 }
 
 export class CheckoutPage extends BasePage {
-  readonly path = "/view_cart";
+  readonly path = "/checkout";
   readonly header: Header;
   readonly footer: Footer;
   readonly orderTable: OrderTable;

@@ -419,3 +419,284 @@ test(
     });
   },
 );
+
+// Test Case 23: Verify address details in checkout page
+test(
+  "Verify address details in checkout page",
+  { tag: ["@smoke", "@e2e"] },
+  async ({
+    page,
+    homePage,
+    loginPage,
+    signupPage,
+    cartPage,
+    checkoutPage,
+    accountCreatedPage,
+    accountDeletedPage,
+    registrationData,
+  }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Step 4: Click 'Signup / Login' button", async () => {
+      // Step 4: Click 'Signup / Login' button
+      await clickSignupLoginLink(page, homePage.header);
+      await expect(await loginPage.getNewUserSignUpHeading()).toBeVisible();
+    });
+
+    await test.step("Steps 5-6: Fill all details in Signup and create account. Verify 'ACCOUNT CREATED!' and click 'Continue' button. Verify ' Logged in as username' at top", async () => {
+      // Steps 5: Fill all details in Signup and create account
+      await enterNameAndEmailThenSignup(
+        page,
+        loginPage,
+        signupPage,
+        registrationData.name,
+        registrationData.email,
+      );
+
+      // Step 8: Verify that 'ENTER ACCOUNT INFORMATION' is visible
+      await expect(
+        await signupPage.getEnterAccountInformationHeading(),
+      ).toBeVisible();
+
+      await fillSignupFormAndCreateAccount(
+        page,
+        signupPage,
+        accountCreatedPage,
+        registrationData,
+      );
+
+      await accountCreatedPage.clickContinueButton();
+      await expect(page).toHaveURL(homePage.path); // back to home page
+
+      // Step 16: Verify that 'Logged in as username' is visible
+      expect(await homePage.header.getLoggedInName()).toBe(
+        registrationData.name,
+      );
+    });
+
+    await test.step("Steps 8-10: Add products to cart. Click 'Cart' button. Verify that cart page is displayed", async () => {
+      // Step 8: Add products to cart
+      let productCard = await homePage.productList.getProductCard(1);
+      await productCard.hoverAndClickAddToCart();
+
+      let addedToCartModal = homePage.addedToCartModal;
+      await expect(await addedToCartModal.getHeader()).toBeVisible();
+      await addedToCartModal.clickContinueShoppingBtn();
+
+      productCard = await homePage.productList.getProductCard(2);
+      await productCard.hoverAndClickAddToCart();
+
+      addedToCartModal = homePage.addedToCartModal;
+      await expect(await addedToCartModal.getHeader()).toBeVisible();
+      await addedToCartModal.clickContinueShoppingBtn();
+
+      // Step 9: Click 'Cart' button
+      await homePage.header.clickCartLink();
+
+      // Step 10: Verify that cart page is displayed
+      await expect(page).toHaveURL(cartPage.path);
+      await expect(await cartPage.getShoppingCartHeader()).toBeVisible();
+    });
+
+    await test.step("Steps 11-13: Click Proceed To Checkout. Verify that the delivery address is same address filled at the time registration of account. Verify that the billing address is same address filled at the time registration of account", async () => {
+      // Step 11: Click Proceed To Checkout
+      await cartPage.clickProceedToCheckoutButton();
+      await expect(page).toHaveURL(checkoutPage.path);
+
+      // Step 12: Verify that the delivery address is same address filled at the time registration of account
+      await verifyAddressMatchesRegistrationData(
+        await checkoutPage.getDeliveryAddress(),
+        registrationData,
+      );
+
+      // Step 13: Verify that the billing address is same address filled at the time registration of account
+      await verifyAddressMatchesRegistrationData(
+        await checkoutPage.getBillingAddress(),
+        registrationData,
+      );
+    });
+
+    await test.step("Steps 14-15: Click 'Delete Account' button. Verify 'ACCOUNT DELETED!' and click 'Continue' button", async () => {
+      // Step 14: Click 'Delete Account' button
+      // Step 15: Verify 'ACCOUNT DELETED!' and click 'Continue' button
+      await deleteAccountAndVerifyDeleted(
+        page,
+        homePage.header,
+        accountDeletedPage,
+      );
+
+      await accountDeletedPage.clickContinueButton();
+      await expect(page).toHaveURL(homePage.path);
+    });
+  },
+);
+
+// Test Case 24: Download Invoice after purchase order
+test(
+  "Download Invoice after purchase order",
+  { tag: ["@smoke", "@e2e"] },
+  async ({
+    page,
+    homePage,
+    loginPage,
+    signupPage,
+    accountCreatedPage,
+    cartPage,
+    checkoutPage,
+    paymentPage,
+    paymentDonePage,
+    accountDeletedPage,
+    registrationData,
+  }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url 'http://automationexercise.com'. Verify that home page is visible successfully", async () => {
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    const addedProduct1 =
+      await test.step("Step 4A: Add products to cart.", async () => {
+        // Step 4: Add products to cart
+        const productCard = await homePage.productList.getProductCard(0);
+        const summary = await productCard.getSummary();
+        await productCard.hoverAndClickAddToCart();
+        await homePage.addedToCartModal.clickContinueShoppingBtn();
+        return summary;
+      });
+
+    const addedProduct2 =
+      await test.step("Step 4B: Add products to cart.", async () => {
+        // Step 4: Add products to cart
+        const productCard = await homePage.productList.getProductCard(1);
+        const summary = await productCard.getSummary();
+        await productCard.hoverAndClickAddToCart();
+        await homePage.addedToCartModal.clickContinueShoppingBtn();
+        return summary;
+      });
+
+    await test.step("Steps 5-6: Click 'Cart' button. Verify that cart page is displayed", async () => {
+      // Step 9: Click 'Cart' button
+      await homePage.header.clickCartLink();
+
+      // Step 10: Verify that cart page is displayed
+      await expect(page).toHaveURL(cartPage.path);
+      await expect(await cartPage.getShoppingCartHeader()).toBeVisible();
+    });
+
+    await test.step("Steps 8-10: Click 'Signup / Login' button. Fill all details in Signup and create account. Verify 'ACCOUNT CREATED!' and click 'Continue' button", async () => {
+      // Step 8: Click 'Signup / Login' button
+      await clickSignupLoginLink(page, homePage.header);
+      await expect(await loginPage.getNewUserSignUpHeading()).toBeVisible();
+
+      // Steps 9: Fill all details in Signup and create account
+      await enterNameAndEmailThenSignup(
+        page,
+        loginPage,
+        signupPage,
+        registrationData.name,
+        registrationData.email,
+      );
+
+      await expect(
+        await signupPage.getEnterAccountInformationHeading(),
+      ).toBeVisible();
+
+      await fillSignupFormAndCreateAccount(
+        page,
+        signupPage,
+        accountCreatedPage,
+        registrationData,
+      );
+
+      // Step 10:Verify 'ACCOUNT CREATED!' and click 'Continue' button
+      await accountCreatedPage.clickContinueButton();
+      await expect(page).toHaveURL(homePage.path); // back to home page
+    });
+
+    await test.step("Step 11: Verify ' Logged in as username' at top.", async () => {
+      // Step 11: Verify ' Logged in as username' at top
+      expect(await homePage.header.getLoggedInName()).toBe(
+        registrationData.name,
+      );
+    });
+
+    await test.step("Steps 12-14: Click 'Cart' button. Click Proceed To Checkout. Verify Address Details and Review Your Order", async () => {
+      // Step 12: Click 'Cart' button
+      await homePage.header.clickCartLink();
+      await expect(page).toHaveURL(cartPage.path);
+
+      // Step 13: Click Proceed To Checkout
+      await cartPage.clickProceedToCheckoutButton();
+      await expect(page).toHaveURL(checkoutPage.path);
+
+      // Step 12: Verify Address Details and Review Your Order
+      await verifyAddressMatchesRegistrationData(
+        await checkoutPage.getDeliveryAddress(),
+        registrationData,
+      );
+      await verifyAddressMatchesRegistrationData(
+        await checkoutPage.getBillingAddress(),
+        registrationData,
+      );
+
+      expect(await checkoutPage.orderTable.getLineCount()).toBe(2);
+
+      await verifyOrderLineMatchesProduct(
+        checkoutPage.orderTable,
+        0,
+        addedProduct1,
+      );
+      await verifyOrderLineMatchesProduct(
+        checkoutPage.orderTable,
+        1,
+        addedProduct2,
+      );
+      await verifyOrderTotalAmount(checkoutPage.orderTable, [
+        addedProduct1,
+        addedProduct2,
+      ]);
+    });
+
+    await test.step("Steps 15: Enter description in comment text area and click 'Place Order''", async () => {
+      // Step 15: Enter description in comment text area and click 'Place Order'
+      await checkoutPage.setCommentInput("Comment text");
+
+      await checkoutPage.clickPlaceOrderButton();
+      await expect(page).toHaveURL(paymentPage.path);
+    });
+
+    await test.step("Steps 16-18: Enter payment details: Name on Card, Card Number, CVC, Expiration date. Click 'Pay and Confirm Order' button. Verify success message 'Your order has been placed successfully!'", async () => {
+      // Steps 16-18: Enter payment details, click 'Pay and Confirm Order', verify success message
+      await payAndVerifyOrderPlaced(paymentPage, paymentDonePage);
+    });
+
+    await test.step("Steps 21-22 Click 'Download Invoice' button and verify invoice is downloaded successfully. Click 'Continue' button", async () => {
+      // Step 19: Click 'Download Invoice' button and verify invoice is downloaded successfully.
+      const download = await paymentDonePage.downloadInvoice();
+      expect(download.suggestedFilename()).toMatch(/invoice/i);
+      expect(await download.failure()).toBeNull();
+
+      // Step 20: Click 'Continue' button
+      await paymentDonePage.clickContinueButton();
+    });
+
+    await test.step("Steps 21-22 Click 'Delete Account' button. Verify 'ACCOUNT DELETED!' and click 'Continue' button", async () => {
+      // Step 17: Click 'Delete Account' button
+      await deleteAccountAndVerifyDeleted(
+        page,
+        paymentDonePage.header,
+        accountDeletedPage,
+      );
+
+      // Step 18 Verify 'ACCOUNT DELETED!' and click 'Continue' button
+      await accountDeletedPage.clickContinueButton();
+      await expect(page).toHaveURL(homePage.path);
+    });
+  },
+);

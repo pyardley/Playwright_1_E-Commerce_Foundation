@@ -1,4 +1,4 @@
-import { Locator, Page } from "@playwright/test";
+import { Download, Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
 import { Header } from "@components/Header";
 import { Footer } from "@components/Footer";
@@ -30,8 +30,14 @@ export class PaymentDonePage extends BasePage {
     return this.page.getByRole("link", { name: "Download Invoice" });
   }
 
-  async clickDownloadInvoiceButton() {
-    await (await this.getDownloadInvoiceButton()).click();
+  // Starts the download and returns the Download object. The waitForEvent
+  // promise must be created before the click fires, hence Promise.all.
+  async downloadInvoice(): Promise<Download> {
+    const [download] = await Promise.all([
+      this.page.waitForEvent("download"),
+      (await this.getDownloadInvoiceButton()).click(),
+    ]);
+    return download;
   }
 
   async getContinueButton() {
