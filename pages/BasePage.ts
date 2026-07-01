@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
 export abstract class BasePage {
   readonly page: Page;
@@ -11,12 +11,32 @@ export abstract class BasePage {
     this.page = page;
   }
 
-  async goto(options?: Parameters<Page['goto']>[1]) {
-    if (typeof this.path !== 'string') {
+  async goto(options?: Parameters<Page["goto"]>[1]) {
+    if (typeof this.path !== "string") {
       throw new Error(
         `Cannot goto() ${this.constructor.name}: its path (${this.path}) is dynamic - navigate to it via the UI flow instead.`,
       );
     }
     await this.page.goto(this.path, options);
+  }
+
+  async scrollToBottom() {
+    // Scroll to the absolute bottom of the page
+    await this.page.evaluate(() =>
+      window.scrollTo(0, document.body.scrollHeight),
+    );
+  }
+
+  async scrollToTop() {
+    // Scroll to the absolute top of the page
+    await this.page.evaluate(() => window.scrollTo(0, 0));
+  }
+
+  async getScrollToTopButton() {
+    return this.page.locator("#scrollUp");
+  }
+
+  async clickScrollToTopButton() {
+    await (await this.getScrollToTopButton()).click();
   }
 }

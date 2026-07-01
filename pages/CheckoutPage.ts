@@ -7,10 +7,6 @@ import { OrderTable } from "@components/OrderTable";
 export class AddressDetails {
   constructor(private readonly addrLocator: Locator) {}
 
-  async getHeading() {
-    return this.addrLocator.locator(".page-subheading");
-  }
-
   async getFullName() {
     return (
       await this.addrLocator.locator(".address_firstname").innerText()
@@ -70,7 +66,7 @@ export class CheckoutPage extends BasePage {
   }
 
   async getCommentInput() {
-    return this.page.locator("textarea.form-control");
+    return this.page.locator("#ordermsg").getByRole("textbox");
   }
 
   async setCommentInput(comment: string) {

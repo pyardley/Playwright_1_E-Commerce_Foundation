@@ -33,4 +33,10 @@ export class HomePage extends BasePage {
       name: "recommended items",
     });
   }
+
+  async getHomePageHeader() {
+    return this.page.getByRole("heading", {
+      name: "Full-Fledged practice website for Automation Engineers",
+    });
+  }
 }

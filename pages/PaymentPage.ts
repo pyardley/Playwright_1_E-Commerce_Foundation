@@ -22,14 +22,6 @@ export class PaymentPage extends BasePage {
     await (await this.getPayAndConfirmOrderButton()).click();
   }
 
-  async getCommentInput() {
-    return this.page.locator("textarea.form-control");
-  }
-
-  async setCommentInput(comment: string) {
-    await (await this.getCommentInput()).fill(comment);
-  }
-
   async getNameOnCardInput() {
     return this.page.getByTestId("name-on-card");
   }

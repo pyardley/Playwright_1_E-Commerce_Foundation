@@ -16,6 +16,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     // The site under test exposes test hooks via data-qa, not data-testid -
     // this makes getByTestId() match its actual markup.
     testIdAttribute: 'data-qa',

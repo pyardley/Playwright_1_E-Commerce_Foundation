@@ -163,7 +163,9 @@ test(
 
     await test.step("Steps 3-4: Scroll to bottom of page. Verify 'RECOMMENDED ITEMS' are visible", async () => {
       // Step 3: Scroll to bottom of page
-      await (await homePage.getRecommendedItemsHeader()).scrollIntoViewIfNeeded();
+      await (
+        await homePage.getRecommendedItemsHeader()
+      ).scrollIntoViewIfNeeded();
       // Step 4: Verify 'RECOMMENDED ITEMS' are visible
       await expect(await homePage.getRecommendedItemsHeader()).toBeVisible();
     });
@@ -183,6 +185,74 @@ test(
       // Step 7: Verify that product is displayed in cart page
       const orderLine = await cartPage.orderTable.getLine(0);
       expect(await orderLine.getName()).toBe(productName);
+    });
+  },
+);
+
+// Test Case 25: Verify Scroll Up using 'Arrow' button and Scroll Down functionality
+test(
+  "Verify Scroll Up using 'Arrow' button and Scroll Down functionality",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
+      // Step 2: Navigate to url 'http://automationexercise.com'
+      // Step 3: Verify that home page is visible successfully
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Steps 4-5: Scroll down page to bottom. Verify 'SUBSCRIPTION' is visible", async () => {
+      // Step 4: Scroll down page to bottom
+      await homePage.scrollToBottom();
+
+      // Step 5: Verify 'SUBSCRIPTION' is visible
+      await expect(
+        await homePage.footer.getSubscriptionHeader(),
+      ).toBeInViewport();
+    });
+
+    await test.step("Steps 6-7: Click on arrow at bottom right side to move upward. Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible on screen", async () => {
+      // Step 6: Click on arrow at bottom right side to move upward
+      await homePage.clickScrollToTopButton();
+
+      // Step 7: Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible
+      await expect(await homePage.getHomePageHeader()).toBeInViewport();
+    });
+  },
+);
+
+// Test Case 26: Verify Scroll Up using 'Arrow' button and Scroll Down functionality
+test(
+  "Verify Scroll Up without 'Arrow' button and Scroll Down functionality",
+  { tag: ["@smoke", "@e2e"] },
+  async ({ page, homePage }) => {
+    // Step 1: Launch browser
+    // Handled automatically by Playwright's `page` fixture - no action needed.
+
+    await test.step("Steps 2-3: Navigate to url and verify that home page is visible successfully", async () => {
+      // Step 2: Navigate to url 'http://automationexercise.com'
+      // Step 3: Verify that home page is visible successfully
+      await navigateToHomeAndVerify(page, homePage);
+    });
+
+    await test.step("Steps 4-5: Scroll down page to bottom. Verify 'SUBSCRIPTION' is visible", async () => {
+      // Step 4: Scroll down page to bottom
+      await homePage.scrollToBottom();
+
+      // Step 5: Verify 'SUBSCRIPTION' is visible
+      await expect(
+        await homePage.footer.getSubscriptionHeader(),
+      ).toBeInViewport();
+    });
+
+    await test.step("Steps 6-7: Click on arrow at bottom right side to move upward. Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible on screen", async () => {
+      // Step 6: Click on arrow at bottom right side to move upward
+      await homePage.scrollToTop();
+
+      // Step 7: Verify that page is scrolled up and 'Full-Fledged practice website for Automation Engineers' text is visible
+      await expect(await homePage.getHomePageHeader()).toBeInViewport();
     });
   },
 );
