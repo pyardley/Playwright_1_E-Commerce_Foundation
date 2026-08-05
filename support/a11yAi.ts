@@ -11,6 +11,18 @@ export interface EvaluateAltTextParams {
   productName: string;
 }
 
+// Despite being asked for "ONLY a JSON object, no other text", Claude models
+// commonly still wrap structured replies in a ```json ... ``` fence. Strip
+// that (and fall back to the outermost {...} span) before parsing, rather
+// than failing every single call on cosmetic formatting.
+function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced) return fenced[1];
+
+  const braces = text.match(/\{[\s\S]*\}/);
+  return braces ? braces[0] : text;
+}
+
 // Rule-based scanners (axe-core included) can only confirm an alt attribute
 // exists - not whether it actually describes the image. This asks a vision
 // model to judge that directly, matching each screenshot 1:1 with its own
@@ -63,7 +75,7 @@ export async function evaluateAltTextWithAI({
       return null;
     }
 
-    return JSON.parse(textBlock.text) as AltTextVerdict;
+    return JSON.parse(extractJson(textBlock.text)) as AltTextVerdict;
   } catch (error) {
     console.warn(`[a11y-ai] Failed to evaluate alt text via ${model}: ${error}`);
     return null;
