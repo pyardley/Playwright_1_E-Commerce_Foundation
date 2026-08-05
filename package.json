@@ -11,6 +11,7 @@
     "test:headed": "playwright test --headed",
     "test:a11y": "cross-env TEST_SUITE=smoke playwright test --project=chromium --grep @a11y",
     "test:a11y:ai": "playwright test --project=chromium --grep @ai-a11y",
+    "test:api": "playwright test --project=chromium --grep @api",
     "perf:db:up": "docker compose up -d perf-db",
     "perf:db:down": "docker compose down",
     "report": "playwright show-report",
@@ -39,6 +40,7 @@
     "eslint-plugin-playwright": "^2.10.4",
     "pg": "^8.22.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1"
+    "typescript-eslint": "^8.61.1",
+    "zod": "^4.4.3"
   }
 }

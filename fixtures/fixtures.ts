@@ -15,6 +15,11 @@ import { PaymentDonePage } from "@pages/PaymentDonePage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
 import { PERF_INIT_SCRIPT, WebVitalEntry } from "@support/perf";
+import {
+  createAccountResponseSchema,
+  deleteAccountResponseSchema,
+  validateResponse,
+} from "@support/schemas";
 import AxeBuilder from "@axe-core/playwright";
 
 export type TestUser = RegistrationData;
@@ -46,7 +51,11 @@ async function createUserViaApi(request: APIRequestContext, user: TestUser) {
     },
   });
 
-  const body = await response.json();
+  const body = validateResponse(
+    createAccountResponseSchema,
+    await response.json(),
+    "POST /api/createAccount",
+  );
   if (body.responseCode !== 201) {
     throw new Error(`Failed to create test user via API: ${body.message}`);
   }
@@ -66,7 +75,11 @@ async function deleteUserViaApi(request: APIRequestContext, user: TestUser) {
       },
     });
 
-    const body = await response.json();
+    const body = validateResponse(
+      deleteAccountResponseSchema,
+      await response.json(),
+      "DELETE /api/deleteAccount",
+    );
     if (body.responseCode !== 200 && body.responseCode !== 404) {
       console.warn(`Failed to delete test user via API: ${body.message}`);
     }

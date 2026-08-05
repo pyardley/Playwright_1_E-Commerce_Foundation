@@ -19,6 +19,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **Cross-browser coverage** — the suite runs against Chromium, Firefox, and WebKit.
 - **CI** — every push and pull request runs lint, type-check, then both the smoke suite (fixed data) and the e2e suite (Faker-generated data) as separate staged steps, each uploading its own HTML report artifact, via GitHub Actions (see badge above).
 - **Automated accessibility auditing, rule-based and AI-assisted** — `tests/Accessibility.spec.ts` runs an [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.1 A/AA + best-practice) scan against every reachable page and the Added-to-Cart modal, plus a keyboard-operability check and a 320px reflow check (WCAG 1.4.10) it doesn't cover. `tests/AccessibilityAi.spec.ts` goes a step further for the one thing static rules can't judge — whether an image's alt text is actually *meaningful* — by asking a vision-capable Claude model to evaluate it directly. See [Accessibility testing](#accessibility-testing) below.
+- **API contract & schema validation** — `support/schemas.ts` defines [Zod](https://zod.dev) schemas for every API endpoint this suite touches (`createAccount`, `deleteAccount`, `productsList`, `brandsList`, `searchProduct`), derived from automationexercise.com's own [published API docs](https://automationexercise.com/api_list) plus live responses. `validateResponse()` is wired directly into the `testUser` fixture's `createUserViaApi`/`deleteUserViaApi` calls (`fixtures/fixtures.ts`) — every test that uses that fixture is protected with zero changes to the test itself — and `tests/Api.spec.ts` adds explicit, intentional coverage of the read-only endpoints. See [API contract validation](#api-contract-validation) below.
 - **Per-test performance trending, local-only** — a custom reporter (`reporters/perfReporter.ts`) and an auto-fixture (`capturePerf` in `fixtures/fixtures.ts`) capture every test's execution duration plus real browser page-load performance (Navigation Timing, Largest Contentful Paint, Cumulative Layout Shift) and persist it to a local Postgres database — with zero changes needed in any individual test. Deliberately never collected in CI. See [Performance data](#performance-data) below.
 
 ## Test coverage
@@ -71,6 +72,19 @@ It's entirely opt-in: `test.skip()`s cleanly (not a failure) without an `ANTHROP
 ### What's out of scope (for now)
 
 The rest of the "AI-assisted" accessibility techniques worth knowing about - comparing visual layout order against DOM order (WCAG 1.3.2), simulating a screen-reader user through dynamic focus traps, judging whether a form's validation error message is actually *helpful* rather than just present - aren't implemented here. They'd need either much heavier per-test tooling (visual diffing, an accessibility-tree-to-screen-reader simulation) or a subjective LLM judgment call on something this suite doesn't have a strong opinion on yet. The one AI check above was chosen because it has a clean, bounded, one-image-in-one-verdict-out shape; the rest are a reasonable next step, not a gap in today's coverage.
+
+## API contract validation
+
+`support/schemas.ts` defines a [Zod](https://zod.dev) schema for every automationexercise.com API endpoint this suite calls: `createAccount`, `deleteAccount` (used by the `testUser` fixture), plus the read-only `productsList`, `brandsList`, and `searchProduct`. Schemas are derived from the site's own [published API list](https://automationexercise.com/api_list) - which documents each endpoint's parameters and `responseCode` in prose, but not exact JSON field names - cross-checked against real responses observed while building this file, rather than reverse-engineered from scratch.
+
+### Hard-fail by design
+
+Unlike the accessibility and (future) visual-regression checks, API contract validation **hard-fails**: `validateResponse()` throws a readable diff (the failing field paths, the Zod error messages, and the raw response body) the moment a response doesn't match its schema. This is deliberately the opposite policy to [Accessibility testing](#accessibility-testing)'s report-only stance - a broken API contract on this site's own documented endpoints is a real, actionable regression this team can respond to, not noise from third-party page content nobody here controls.
+
+### Where it's wired in
+
+- **`fixtures/fixtures.ts`** - `createUserViaApi`/`deleteUserViaApi` (used by the `testUser` fixture) validate every response before checking its `responseCode`. This is the highest-leverage part: every test that consumes `testUser` is protected without changing a single test file. It's also exactly the failure mode this suite already hit once for real - the form-vs-JSON body quirk documented above - just caught automatically next time instead of by hand.
+- **`tests/Api.spec.ts`** (tagged `@api`) - explicit, intentional coverage of the read-only endpoints: a successful `productsList`/`brandsList`/`searchProduct` call against their success schema, plus `searchProduct`'s documented 400 (missing `search_product`) against a shared error schema. Run with `npm run test:api`.
 
 ## Performance data
 
@@ -132,7 +146,7 @@ automationexercise.com is a niche QA-practice target, not a widely-starred open-
 | One fixtures file per concern (page objects, test data, API client) | mmislej | Each file stays small and focused | More files/imports to navigate for a suite this size |
 | A single `fixtures/fixtures.ts` for everything | **This project**, afeefahmedprof93-sy | Simple, everything in one place at this scale | Would need splitting if the suite grew substantially |
 | Dedicated API test suite with JSON Schema (AJV) response validation | mmislej | Catches backend contract drift independently of the UI | Meaningful extra surface (schema files, custom matchers) to maintain |
-| API calls used only for test-data setup/teardown, not as their own test subject | **This project** | Minimal extra surface; keeps the suite focused on UI behaviour | Doesn't independently verify the API's own response contract |
+| API contract validation wired into both the test-data fixture and a dedicated read-only test suite (Zod, hard-fail) | **This project** (`support/schemas.ts`, `tests/Api.spec.ts` - see [API contract validation](#api-contract-validation)) | Protects every test using `testUser` for free, plus explicit coverage of the read-only endpoints, with a TypeScript-first schema library (no separate JSON Schema files) | Meaningful extra surface (schema file, `validateResponse` helper) to maintain, same as mmislej's approach |
 | Auto-deploy the HTML report to GitHub Pages on every run | mmislej | A live, clickable report link for a portfolio — not just a pass/fail badge | Extra CI permissions/steps; publishes trace/screenshot data publicly, which may not always be desirable |
 | Playwright's built-in HTML reporter only | **This project**, mmislej (also), afeefahmedprof93-sy | Zero extra dependency, already gitignored | Less rich cross-run trend/history view than a dedicated reporting tool |
 | Mobile viewport project (e.g. `devices['Pixel 5']`) | afeefahmedprof93-sy | Responsive-layout coverage for free | Multiplies CI time; only worth it if the app's mobile layout genuinely differs |
@@ -177,6 +191,7 @@ npm test
 | `npm run test:headed`| Run tests in headed (visible) browser mode    |
 | `npm run test:a11y`  | Run the axe-core accessibility scan (`@a11y`, Chromium only, report-only - see [Accessibility testing](#accessibility-testing)) |
 | `npm run test:a11y:ai` | Run the AI-assisted alt-text check (`@ai-a11y`, Chromium only, skips without `ANTHROPIC_API_KEY`) |
+| `npm run test:api`   | Run the API contract/schema validation tests (`@api`, Chromium only, hard-fail - see [API contract validation](#api-contract-validation)) |
 | `npm run perf:db:up` | Start the local Postgres container for performance data (see [Performance data](#performance-data)) |
 | `npm run perf:db:down` | Stop the local Postgres container |
 | `npm run report`     | Open the last HTML report                     |

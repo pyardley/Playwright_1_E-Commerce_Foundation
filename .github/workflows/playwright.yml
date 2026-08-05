@@ -48,6 +48,11 @@ jobs:
         env:
           PLAYWRIGHT_HTML_REPORT: playwright-report-a11y
 
+      - name: Run API contract tests (Zod schema validation, hard-fail)
+        run: npm run test:api
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-api
+
       # No-op until the ANTHROPIC_API_KEY repo secret is configured - the AI-
       # assisted alt-text check is opt-in and isn't required for the rest of
       # the suite to run (see README > Accessibility testing).
@@ -79,4 +84,12 @@ jobs:
         with:
           name: playwright-report-a11y
           path: playwright-report-a11y/
+          retention-days: 14
+
+      - name: Upload API contract HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-api
+          path: playwright-report-api/
           retention-days: 14
