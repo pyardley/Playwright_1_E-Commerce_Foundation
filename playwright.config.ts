@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.TEST_SUITE === "e2e" ? 2 : 0,
   reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report' }],
+    ['html', { open: 'never', outputFolder: process.env.PLAYWRIGHT_HTML_REPORT ?? 'playwright-report' }],
     ['list'],
   ],
   use: {

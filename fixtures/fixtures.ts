@@ -14,6 +14,7 @@ import { PaymentPage } from "@pages/PaymentPage";
 import { PaymentDonePage } from "@pages/PaymentDonePage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
+import AxeBuilder from "@axe-core/playwright";
 
 export type TestUser = RegistrationData;
 
@@ -90,6 +91,7 @@ type Fixtures = {
   testUser: TestUser;
   registrationData: RegistrationData;
   blockAdDomains: void;
+  axeBuilder: AxeBuilder;
 };
 
 export const test = base.extend<Fixtures>({
@@ -131,6 +133,7 @@ export const test = base.extend<Fixtures>({
   // "Register User" test creates its own account through the UI and would
   // otherwise end up with a redundant duplicate account.
   registrationData: async ({}, use) => use(buildRegistrationData()),
+  axeBuilder: async ({ page }, use) => use(new AxeBuilder({ page })),
 });
 
 export { expect };

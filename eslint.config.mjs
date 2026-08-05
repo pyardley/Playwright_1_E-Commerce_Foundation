@@ -7,7 +7,19 @@ export default defineConfig([
     files: ['tests/**'],
     extends: [tseslint.configs.recommended, playwright.configs['flat/recommended']],
     rules: {
-      // You can customize or override specific rules here
+      // The accessibility suite is report-only by design (see
+      // support/a11y.ts) - these helpers attach/annotate results instead of
+      // calling expect(), so they stand in for assertions here.
+      'playwright/expect-expect': [
+        'warn',
+        {
+          assertFunctionNames: [
+            'runAccessibilityScan',
+            'checkReflow',
+            'evaluateAltTextWithAI',
+          ],
+        },
+      ],
     },
   },
 ]);

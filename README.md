@@ -18,6 +18,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **Traceability** — every spec file is commented step-by-step against a documented manual test case, using `test.step()` for structured, readable reporting (see [Test coverage](#test-coverage) below).
 - **Cross-browser coverage** — the suite runs against Chromium, Firefox, and WebKit.
 - **CI** — every push and pull request runs lint, type-check, then both the smoke suite (fixed data) and the e2e suite (Faker-generated data) as separate staged steps, each uploading its own HTML report artifact, via GitHub Actions (see badge above).
+- **Automated accessibility auditing, rule-based and AI-assisted** — `tests/Accessibility.spec.ts` runs an [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.1 A/AA + best-practice) scan against every reachable page and the Added-to-Cart modal, plus a keyboard-operability check and a 320px reflow check (WCAG 1.4.10) it doesn't cover. `tests/AccessibilityAi.spec.ts` goes a step further for the one thing static rules can't judge — whether an image's alt text is actually *meaningful* — by asking a vision-capable Claude model to evaluate it directly. See [Accessibility testing](#accessibility-testing) below.
 
 ## Test coverage
 
@@ -49,6 +50,26 @@ automationexercise.com runs a real ad-tech/RTB auction system that's the root ca
 `fundingchoicesmessages.google.com` also renders the cookie-consent dialog itself, so in `smoke` mode the banner typically never appears at all — `components/dismissCookieConsent.ts`'s existing try/catch (already built for "banner didn't appear, e.g. in Firefox") handles this gracefully with no extra code.
 
 `e2e` mode deliberately leaves ad traffic unblocked and compensates with `retries: 2` instead — broader, more realistic conditions at the cost of occasional retries, mirroring how that suite already accepts broader Faker-driven input variety over `smoke`'s determinism.
+
+## Accessibility testing
+
+`tests/Accessibility.spec.ts` runs an [axe-core](https://github.com/dequelabs/axe-core) scan (via [`@axe-core/playwright`](https://www.npmjs.com/package/@axe-core/playwright)'s `AxeBuilder`, tagged `wcag2a`/`wcag2aa`/`wcag21a`/`wcag21aa`/`best-practice`) against every reachable page - Home, Login, Signup, Products, Product Details, Cart, Checkout, Payment, Payment Done, Account Created, Account Deleted, Contact Us, Test Cases - plus a component-scoped scan of the Added-to-Cart modal in its open state. It also runs two checks axe-core doesn't cover: a keyboard-operability check (can the header's Products link be reached by `Tab` and activated with `Enter`?) and a 320px-viewport reflow check (WCAG 1.4.10 - does the page avoid horizontal scrolling at mobile width?).
+
+### Report-only by design
+
+Every one of these checks is **report-only**: it attaches full results (raw JSON, and a formatted violation summary) to the HTML report and adds a Playwright annotation, but it never fails the test on a violation alone. A test only fails here if the setup/navigation itself breaks. This is a deliberate mirror of the [ad-blocking rationale](#why-block-ad-domains-for-smoke-but-not-e2e) above: `automationexercise.com` is a live third-party site this suite doesn't control, so a hard-fail policy would just make the suite permanently red for defects nobody here can fix. Two real ones already exist and are worked around elsewhere in this codebase - see the comments in `pages/SignupPage.ts` on the Day/Month/Year selects (no accessible name) and the mislabeled Zipcode `<label for="city">` - and this scan is what would have caught them automatically instead of by hand.
+
+Run it with `npm run test:a11y`, then `npm run report -- playwright-report-a11y` (or open `playwright-report-a11y/index.html`) to see the attachments and annotations per test.
+
+### AI-assisted check
+
+`tests/AccessibilityAi.spec.ts` targets the one gap rule-based scanning structurally can't close: axe-core can confirm a product image *has* alt text, but not whether that text actually describes the image. This test screenshots each of the first three product images and asks a vision-capable Claude model to judge whether the alt text is meaningful or just generic/keyword-stuffed/missing, attaching the image and the model's verdict (with reasoning) to the report - report-only for the same reason as above, plus an LLM judgment isn't a deterministic pass/fail signal in the first place.
+
+It's entirely opt-in: `test.skip()`s cleanly (not a failure) without an `ANTHROPIC_API_KEY` in `.env`, and the CI step that runs it (`npm run test:a11y:ai`) only executes if that key is configured as a repository secret - otherwise it's a no-op, same as the commented-out `webServer` block in `playwright.config.ts`.
+
+### What's out of scope (for now)
+
+The rest of the "AI-assisted" accessibility techniques worth knowing about - comparing visual layout order against DOM order (WCAG 1.3.2), simulating a screen-reader user through dynamic focus traps, judging whether a form's validation error message is actually *helpful* rather than just present - aren't implemented here. They'd need either much heavier per-test tooling (visual diffing, an accessibility-tree-to-screen-reader simulation) or a subjective LLM judgment call on something this suite doesn't have a strong opinion on yet. The one AI check above was chosen because it has a clean, bounded, one-image-in-one-verdict-out shape; the rest are a reasonable next step, not a gap in today's coverage.
 
 ## How this compares to other automationexercise.com Playwright suites
 
@@ -119,6 +140,8 @@ npm test
 | `npm run test:e2e`   | Run only tests tagged `@e2e` (`TEST_SUITE=e2e`: Faker-generated test data, ad-domain blocking off, 2 retries) |
 | `npm run test:ui`    | Run tests in Playwright's UI mode             |
 | `npm run test:headed`| Run tests in headed (visible) browser mode    |
+| `npm run test:a11y`  | Run the axe-core accessibility scan (`@a11y`, Chromium only, report-only - see [Accessibility testing](#accessibility-testing)) |
+| `npm run test:a11y:ai` | Run the AI-assisted alt-text check (`@ai-a11y`, Chromium only, skips without `ANTHROPIC_API_KEY`) |
 | `npm run report`     | Open the last HTML report                     |
 | `npm run lint`       | Run ESLint                                    |
 | `npm run typecheck`  | Run the TypeScript compiler in check-only mode |

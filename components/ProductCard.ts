@@ -25,6 +25,10 @@ export class ProductCard {
     return { name: await this.getName(), price: await this.getPrice() };
   }
 
+  async getImage() {
+    return this.cardLocator.locator("img");
+  }
+
   // The "View Product" link lives in a sibling .choose block, not inside
   // .single-products - this card's own locator is already scoped to
   // .product-image-wrapper (see getProductCardLocators below) so this just

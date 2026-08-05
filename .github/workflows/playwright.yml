@@ -8,6 +8,7 @@ on:
 
 env:
   BASE_URL: https://automationexercise.com/
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
   test:
@@ -42,6 +43,20 @@ jobs:
         env:
           PLAYWRIGHT_HTML_REPORT: playwright-report-e2e
 
+      - name: Run accessibility tests (axe-core, report-only)
+        run: npm run test:a11y
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-a11y
+
+      # No-op until the ANTHROPIC_API_KEY repo secret is configured - the AI-
+      # assisted alt-text check is opt-in and isn't required for the rest of
+      # the suite to run (see README > Accessibility testing).
+      - name: Run AI-assisted accessibility check
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: npm run test:a11y:ai
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-a11y-ai
+
       - name: Upload smoke HTML report
         if: always()
         uses: actions/upload-artifact@v7
@@ -56,4 +71,12 @@ jobs:
         with:
           name: playwright-report-e2e
           path: playwright-report-e2e/
+          retention-days: 14
+
+      - name: Upload accessibility HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-a11y
+          path: playwright-report-a11y/
           retention-days: 14
