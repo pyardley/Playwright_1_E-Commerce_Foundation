@@ -12,6 +12,7 @@
     "test:a11y": "cross-env TEST_SUITE=smoke playwright test --project=chromium --grep @a11y",
     "test:a11y:ai": "playwright test --project=chromium --grep @ai-a11y",
     "test:api": "playwright test --project=chromium --grep @api",
+    "test:compliance": "cross-env TEST_SUITE=e2e playwright test --project=chromium --grep @compliance",
     "perf:db:up": "docker compose up -d perf-db",
     "perf:db:down": "docker compose down",
     "report": "playwright show-report",

@@ -20,6 +20,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **CI** — every push and pull request runs lint, type-check, then both the smoke suite (fixed data) and the e2e suite (Faker-generated data) as separate staged steps, each uploading its own HTML report artifact, via GitHub Actions (see badge above).
 - **Automated accessibility auditing, rule-based and AI-assisted** — `tests/Accessibility.spec.ts` runs an [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.1 A/AA + best-practice) scan against every reachable page and the Added-to-Cart modal, plus a keyboard-operability check and a 320px reflow check (WCAG 1.4.10) it doesn't cover. `tests/AccessibilityAi.spec.ts` goes a step further for the one thing static rules can't judge — whether an image's alt text is actually *meaningful* — by asking a vision-capable Claude model to evaluate it directly. See [Accessibility testing](#accessibility-testing) below.
 - **API contract & schema validation** — `support/schemas.ts` defines [Zod](https://zod.dev) schemas for every API endpoint this suite touches (`createAccount`, `deleteAccount`, `productsList`, `brandsList`, `searchProduct`), derived from automationexercise.com's own [published API docs](https://automationexercise.com/api_list) plus live responses. `validateResponse()` is wired directly into the `testUser` fixture's `createUserViaApi`/`deleteUserViaApi` calls (`fixtures/fixtures.ts`) — every test that uses that fixture is protected with zero changes to the test itself — and `tests/Api.spec.ts` adds explicit, intentional coverage of the read-only endpoints. See [API contract validation](#api-contract-validation) below.
+- **Cookie & regulatory compliance** — `tests/CookieCompliance.spec.ts` checks the live site's cookie-consent behaviour: no known ad/analytics tracking cookie (`support/trackingCookies.ts`) should be present before the user consents, and once consent is given (via the existing `components/dismissCookieConsent.ts`), that choice should survive a reload. See [Cookie & regulatory compliance testing](#cookie--regulatory-compliance-testing) below.
 - **Per-test performance trending, local-only** — a custom reporter (`reporters/perfReporter.ts`) and an auto-fixture (`capturePerf` in `fixtures/fixtures.ts`) capture every test's execution duration plus real browser page-load performance (Navigation Timing, Largest Contentful Paint, Cumulative Layout Shift) and persist it to a local Postgres database — with zero changes needed in any individual test. Deliberately never collected in CI. See [Performance data](#performance-data) below.
 
 ## Test coverage
@@ -85,6 +86,26 @@ Unlike the accessibility and (future) visual-regression checks, API contract val
 
 - **`fixtures/fixtures.ts`** - `createUserViaApi`/`deleteUserViaApi` (used by the `testUser` fixture) validate every response before checking its `responseCode`. This is the highest-leverage part: every test that consumes `testUser` is protected without changing a single test file. It's also exactly the failure mode this suite already hit once for real - the form-vs-JSON body quirk documented above - just caught automatically next time instead of by hand.
 - **`tests/Api.spec.ts`** (tagged `@api`) - explicit, intentional coverage of the read-only endpoints: a successful `productsList`/`brandsList`/`searchProduct` call against their success schema, plus `searchProduct`'s documented 400 (missing `search_product`) against a shared error schema. Run with `npm run test:api`.
+
+## Cookie & regulatory compliance testing
+
+`tests/CookieCompliance.spec.ts` (tagged `@compliance`) checks two things about automationexercise.com's own cookie-consent dialog, rather than about anything this codebase controls:
+
+1. **No known tracking cookie is present before consent.** `support/trackingCookies.ts`'s `TRACKING_COOKIE_PATTERN` is a short list of well-documented Google Analytics/Ads/DoubleClick and Meta Pixel cookie-name prefixes — unlike `support/adBlocklist.ts`'s domain list (verified live against this exact target), these are public, general-purpose patterns, not ones reverse-engineered from this site specifically. `checkTrackingCookiesBeforeConsent()` reads `context.cookies()` on a fresh page load and checks for a match.
+2. **The consent choice survives a reload.** Once the banner's Consent button is clicked (reusing `components/dismissCookieConsent.ts`), reloading the page should not show the banner again.
+
+### Why `TEST_SUITE=e2e` is required
+
+The consent dialog is rendered by `fundingchoicesmessages.google.com` — one of the root ad domains the `blockAdDomains` auto-fixture aborts in `smoke` mode (see [Why block ad domains](#why-block-ad-domains-for-smoke-but-not-e2e) above). With blocking on, the banner never appears and there's nothing to check. `npm run test:compliance` therefore sets `TEST_SUITE=e2e` explicitly (turning ad-domain blocking off) regardless of which suite is otherwise running, and restricts to `chromium` — this behaviour is the live site's own front-end logic, not something that varies meaningfully by browser engine, the same reasoning already applied to `tests/Accessibility.spec.ts`.
+
+### Fail policy: split, not uniformly report-only
+
+Unlike the rest of this suite's third-party-site checks, this one isn't uniformly report-only:
+
+- **Report-only:** whether a tracking cookie fires before consent, and whether the banner appears at all in a given run. Both depend on the live ad network's own geo/session-targeting decisions, which this team doesn't control — attached and annotated, never failed on. (Confirmed live: a real run surfaced Google Funding Choices' own `FCCDCF` cookie present before consent — exactly the kind of finding this check exists to surface, without turning the suite red for a defect nobody here can fix.)
+- **Hard-fail:** once the banner has appeared and the user clicks Consent, the choice not surviving a reload is the site's own first-party consent-management behaviour — deterministic and actionable, so `expect(consentButton).not.toBeVisible()` after `page.reload()` is a real assertion, not an annotation.
+
+If the banner doesn't appear on a given run (ad-network-dependent), the persistence test skips itself via a runtime `test.skip()` rather than reporting a false pass.
 
 ## Performance data
 

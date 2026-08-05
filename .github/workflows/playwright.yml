@@ -53,6 +53,11 @@ jobs:
         env:
           PLAYWRIGHT_HTML_REPORT: playwright-report-api
 
+      - name: Run cookie & regulatory compliance tests
+        run: npm run test:compliance
+        env:
+          PLAYWRIGHT_HTML_REPORT: playwright-report-compliance
+
       # No-op until the ANTHROPIC_API_KEY repo secret is configured - the AI-
       # assisted alt-text check is opt-in and isn't required for the rest of
       # the suite to run (see README > Accessibility testing).
@@ -92,4 +97,12 @@ jobs:
         with:
           name: playwright-report-api
           path: playwright-report-api/
+          retention-days: 14
+
+      - name: Upload cookie compliance HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-compliance
+          path: playwright-report-compliance/
           retention-days: 14

@@ -17,6 +17,7 @@ export default defineConfig([
             'runAccessibilityScan',
             'checkReflow',
             'evaluateAltTextWithAI',
+            'checkTrackingCookiesBeforeConsent',
           ],
         },
       ],
