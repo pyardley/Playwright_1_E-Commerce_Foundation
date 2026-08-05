@@ -14,6 +14,7 @@ import { PaymentPage } from "@pages/PaymentPage";
 import { PaymentDonePage } from "@pages/PaymentDonePage";
 import { buildRegistrationData, RegistrationData } from "@support/testData";
 import { AD_DOMAIN_PATTERN } from "@support/adBlocklist";
+import { PERF_INIT_SCRIPT, WebVitalEntry } from "@support/perf";
 import AxeBuilder from "@axe-core/playwright";
 
 export type TestUser = RegistrationData;
@@ -92,6 +93,7 @@ type Fixtures = {
   registrationData: RegistrationData;
   blockAdDomains: void;
   axeBuilder: AxeBuilder;
+  capturePerf: void;
 };
 
 export const test = base.extend<Fixtures>({
@@ -134,6 +136,89 @@ export const test = base.extend<Fixtures>({
   // otherwise end up with a redundant duplicate account.
   registrationData: async ({}, use) => use(buildRegistrationData()),
   axeBuilder: async ({ page }, use) => use(new AxeBuilder({ page })),
+  // Local-only performance telemetry (see reporters/perfReporter.ts) - never
+  // collected in CI, since CI has nowhere local to persist it and this would
+  // just be added overhead on an already-somewhat-slow live-site run.
+  capturePerf: [
+    async ({ page }, use, testInfo) => {
+      if (process.env.CI) {
+        await use();
+        return;
+      }
+
+      const entries: WebVitalEntry[] = [];
+      const pending: Promise<void>[] = [];
+
+      await page.addInitScript(PERF_INIT_SCRIPT);
+
+      // domcontentloaded, not load: load only fires once every sub-resource
+      // (every product thumbnail on an image-heavy grid page, etc.) has
+      // finished - on a multi-navigation test that clicks through to the
+      // next page as soon as the DOM is ready, the browser never dispatches
+      // load at all for a page navigated away from first (confirmed live:
+      // Products' load event never fired before the test moved on to a
+      // product's detail page). domcontentloaded fires much earlier and
+      // isn't subject to that race, at the cost of loadMs sometimes being 0
+      // (load genuinely hadn't happened yet) - documented in the README.
+      page.on("domcontentloaded", () => {
+        pending.push(
+          (async () => {
+            try {
+              if (page.url() === "about:blank") return;
+
+              // Double rAF settle instead of waitForTimeout/networkidle -
+              // flushes a paint/layout pass without an arbitrary wait.
+              await page.evaluate(
+                () =>
+                  new Promise<void>((resolve) =>
+                    requestAnimationFrame(() =>
+                      requestAnimationFrame(() => resolve()),
+                    ),
+                  ),
+              );
+
+              const entry = await page.evaluate(() => {
+                const nav = performance.getEntriesByType(
+                  "navigation",
+                )[0] as PerformanceNavigationTiming | undefined;
+                const metrics = (
+                  window as unknown as {
+                    __perfMetrics?: { lcpMs: number | null; cls: number | null };
+                  }
+                ).__perfMetrics ?? { lcpMs: null, cls: null };
+                if (!nav) return null;
+
+                return {
+                  url: location.href,
+                  ttfbMs: nav.responseStart,
+                  domContentLoadedMs: nav.domContentLoadedEventEnd,
+                  loadMs: nav.loadEventEnd,
+                  lcpMs: metrics.lcpMs,
+                  cls: metrics.cls,
+                };
+              });
+
+              if (entry) entries.push(entry);
+            } catch {
+              // A fast subsequent navigation can tear down the execution
+              // context mid-evaluate - drop that sample, don't fail the test.
+            }
+          })(),
+        );
+      });
+
+      await use();
+      await Promise.allSettled(pending);
+
+      if (entries.length > 0) {
+        await testInfo.attach("perf-web-vitals.json", {
+          body: JSON.stringify(entries),
+          contentType: "application/json",
+        });
+      }
+    },
+    { auto: true },
+  ],
 });
 
 export { expect };

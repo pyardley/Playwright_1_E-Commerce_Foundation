@@ -19,6 +19,7 @@ This project is a foundation/reference implementation for structuring a Playwrig
 - **Cross-browser coverage** — the suite runs against Chromium, Firefox, and WebKit.
 - **CI** — every push and pull request runs lint, type-check, then both the smoke suite (fixed data) and the e2e suite (Faker-generated data) as separate staged steps, each uploading its own HTML report artifact, via GitHub Actions (see badge above).
 - **Automated accessibility auditing, rule-based and AI-assisted** — `tests/Accessibility.spec.ts` runs an [axe-core](https://github.com/dequelabs/axe-core) (WCAG 2.1 A/AA + best-practice) scan against every reachable page and the Added-to-Cart modal, plus a keyboard-operability check and a 320px reflow check (WCAG 1.4.10) it doesn't cover. `tests/AccessibilityAi.spec.ts` goes a step further for the one thing static rules can't judge — whether an image's alt text is actually *meaningful* — by asking a vision-capable Claude model to evaluate it directly. See [Accessibility testing](#accessibility-testing) below.
+- **Per-test performance trending, local-only** — a custom reporter (`reporters/perfReporter.ts`) and an auto-fixture (`capturePerf` in `fixtures/fixtures.ts`) capture every test's execution duration plus real browser page-load performance (Navigation Timing, Largest Contentful Paint, Cumulative Layout Shift) and persist it to a local Postgres database — with zero changes needed in any individual test. Deliberately never collected in CI. See [Performance data](#performance-data) below.
 
 ## Test coverage
 
@@ -71,6 +72,38 @@ It's entirely opt-in: `test.skip()`s cleanly (not a failure) without an `ANTHROP
 
 The rest of the "AI-assisted" accessibility techniques worth knowing about - comparing visual layout order against DOM order (WCAG 1.3.2), simulating a screen-reader user through dynamic focus traps, judging whether a form's validation error message is actually *helpful* rather than just present - aren't implemented here. They'd need either much heavier per-test tooling (visual diffing, an accessibility-tree-to-screen-reader simulation) or a subjective LLM judgment call on something this suite doesn't have a strong opinion on yet. The one AI check above was chosen because it has a clean, bounded, one-image-in-one-verdict-out shape; the rest are a reasonable next step, not a gap in today's coverage.
 
+## Performance data
+
+Every test run (locally) writes one row per test to a local Postgres database via `reporters/perfReporter.ts`: execution duration, status, retry count, git SHA/branch, and — for tests that navigate a page — a `web_vitals` JSON array with one entry per navigation (`ttfbMs`, `domContentLoadedMs`, `loadMs`, `lcpMs`, `cls`). Capturing those web vitals is `capturePerf`, an `auto: true` fixture in `fixtures/fixtures.ts`: it injects a `PerformanceObserver`-based script (`support/perf.ts`) before every navigation via `page.addInitScript()`, and reads it back after a settle frame following each `domcontentloaded` event, all without any individual test needing to opt in.
+
+### Local-only by design
+
+This is deliberately **never collected in CI** — `reporters/perfReporter.ts` is only added to `playwright.config.ts`'s `reporter` array when `process.env.CI` is unset, and `capturePerf` no-ops immediately when it is. There's no Postgres instance on a CI runner to write to, and instrumenting every page load adds real overhead to already-somewhat-slow live-site CI runs for no benefit if nothing's there to receive it.
+
+### Getting started
+
+```bash
+npm run perf:db:up          # starts a local Postgres in Docker (docker-compose.yml)
+cp .env.example .env         # PERF_DB_URL already matches the compose defaults
+npm run test:smoke           # or any other test script - perf data is captured automatically
+```
+
+The table (`perf_results`, schema in `db/schema.sql`) is created automatically on first run if it doesn't exist. Point Grafana's built-in PostgreSQL data source at the same `PERF_DB_URL` — no plugin needed — for a query like:
+
+```sql
+SELECT recorded_at AS time, duration_ms
+FROM perf_results
+WHERE title = 'Home page'
+ORDER BY recorded_at;
+```
+
+### Known limitations
+
+- **CLS is Chromium-only; LCP works everywhere.** Both metrics are feature-detected via `PerformanceObserver.supportedEntryTypes` rather than assumed, so nothing throws either way — but verified live, `layout-shift` is only implemented in Chromium (`cls` is `null` on Firefox/WebKit), while `largest-contentful-paint` is actually supported on all three. Navigation Timing (`ttfbMs`/`domContentLoadedMs`/`loadMs`) always works.
+- **Captured on `domcontentloaded`, not `load` — and that's deliberate.** `load` only fires once every sub-resource (every product thumbnail on an image-heavy grid page, for example) has finished, and a multi-navigation test typically clicks through to the next page as soon as the DOM is ready - so the browser can end up never dispatching `load` at all for an intermediate page navigated away from first (verified live on the Products page). `domcontentloaded` fires much earlier and isn't subject to that race. The tradeoff: `loadMs` reads as `0` whenever the real `load` event genuinely hadn't fired yet at capture time - expected for pages the test only passes through, not a bug.
+- **A snapshot, not full RUM.** LCP and CLS both keep accumulating until a visibility change or user input, not just until `domcontentloaded` - this suite reads them shortly after, plus one settle frame, which typically undercounts both versus a real user-monitoring measurement. This is trend visibility for local dev runs, not a Lighthouse/RUM replacement, and is called out here rather than presented as lab-grade.
+- **No config beyond a running Postgres.** Without `PERF_DB_URL` set (or without Postgres reachable), the suite still runs and passes normally — the reporter logs a one-line notice and skips persistence rather than failing the run.
+
 ## How this compares to other automationexercise.com Playwright suites
 
 automationexercise.com is a niche QA-practice target, not a widely-starred open-source project — there's no single dominant framework for it. Searching GitHub for Playwright suites against this site (as of June 2026) turned up mostly 0–1★ student exercises; the four most-starred Playwright-specific ones are reviewed below:
@@ -118,6 +151,8 @@ pages/        Page objects (extend BasePage; path + behaviour methods, no assert
 components/   Shared widgets composed into page objects (e.g. the nav bar)
 fixtures/     Typed Playwright fixtures wiring page objects into tests
 support/      Shared test.step bodies and the test data factory (no fixtures of their own)
+reporters/    Custom Playwright reporters (perf data -> local Postgres, local-only)
+db/           SQL schema for the local performance-data Postgres database
 tests/        Spec files
 .claude/      Agent definitions for plan -> generate -> heal workflows (optional tooling)
 ```
@@ -142,6 +177,8 @@ npm test
 | `npm run test:headed`| Run tests in headed (visible) browser mode    |
 | `npm run test:a11y`  | Run the axe-core accessibility scan (`@a11y`, Chromium only, report-only - see [Accessibility testing](#accessibility-testing)) |
 | `npm run test:a11y:ai` | Run the AI-assisted alt-text check (`@ai-a11y`, Chromium only, skips without `ANTHROPIC_API_KEY`) |
+| `npm run perf:db:up` | Start the local Postgres container for performance data (see [Performance data](#performance-data)) |
+| `npm run perf:db:down` | Stop the local Postgres container |
 | `npm run report`     | Open the last HTML report                     |
 | `npm run lint`       | Run ESLint                                    |
 | `npm run typecheck`  | Run the TypeScript compiler in check-only mode |
@@ -149,7 +186,7 @@ npm test
 ## Known gaps
 
 - **No flake budget.** There's no documented retry-rate threshold or quarantine policy for chronically flaky tests (this suite hits a live third-party site, so some flakiness is expected — see the parallel-load notes in commit history). If a test starts failing intermittently, decide explicitly whether to fix it, quarantine it with a linked issue, or accept the flake rate, rather than letting it linger unaddressed.
-- **No cross-run trend visibility.** The HTML reporter (`npm run report`) only shows the most recent run; there's no dashboard tracking pass-rate or flake-rate across runs over time. Worth revisiting if flakiness becomes a recurring problem rather than an occasional one.
+- **No cross-run trend visibility in CI.** The HTML reporter (`npm run report`) only shows the most recent run, and CI doesn't persist anything beyond that. Locally, [Performance data](#performance-data) now gives duration/status/web-vitals trending via Postgres + Grafana - but that's local-only by design (see the section above for why), so CI itself still has no dashboard tracking pass-rate or flake-rate across runs over time. Worth revisiting if flakiness becomes a recurring problem rather than an occasional one.
 
 ## License
 

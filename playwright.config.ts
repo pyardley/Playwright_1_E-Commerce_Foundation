@@ -11,6 +11,10 @@ export default defineConfig({
   reporter: [
     ['html', { open: 'never', outputFolder: process.env.PLAYWRIGHT_HTML_REPORT ?? 'playwright-report' }],
     ['list'],
+    // Local-only performance telemetry (writes to Postgres) - never
+    // registered in CI, so it's never even instantiated against a Postgres
+    // instance that doesn't exist on a CI runner.
+    ...(process.env.CI ? [] : [['./reporters/perfReporter.ts'] as const]),
   ],
   use: {
     baseURL: process.env.BASE_URL,
